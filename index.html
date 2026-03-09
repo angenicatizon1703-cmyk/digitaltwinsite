@@ -15,11 +15,13 @@
 
     h1 {
       margin-top: 20px;
+      margin-bottom: 8px;
     }
 
     #status {
-      margin: 10px 0;
+      margin: 10px 0 6px;
       font-size: 14px;
+      color: #d6d6d6;
     }
 
     canvas {
@@ -28,24 +30,94 @@
       margin: 20px auto;
       display: block;
       max-width: 95vw;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
     }
 
     #infoBox {
-      width: 320px;
-      margin: 20px auto;
-      padding: 16px;
-      border-radius: 14px;
+      width: 720px;
+      max-width: 92vw;
+      margin: 20px auto 40px;
+      padding: 20px;
+      border-radius: 16px;
       background: #111b31;
       border: 1px solid #2b3a5c;
       text-align: left;
       display: none;
+      box-sizing: border-box;
+    }
+
+    #infoTitle {
+      margin: 0 0 16px 0;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .prop-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px 18px;
+    }
+
+    .prop-card {
+      background: #0d1730;
+      border: 1px solid #2a3f69;
+      border-radius: 12px;
+      padding: 12px 14px;
+      box-sizing: border-box;
+    }
+
+    .prop-label {
+      font-size: 13px;
+      color: #9bb0d3;
+      margin-bottom: 6px;
+    }
+
+    .prop-value {
+      font-size: 20px;
+      font-weight: bold;
+      color: white;
+      word-break: break-word;
+    }
+
+    .meta-row {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px 18px;
+    }
+
+    .meta-card {
+      background: #0b1428;
+      border: 1px solid #223659;
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+
+    .empty-note {
+      color: #c7d2e6;
+      font-size: 15px;
+    }
+
+    @media (max-width: 700px) {
+      .prop-grid,
+      .meta-row {
+        grid-template-columns: 1fr;
+      }
+
+      #infoTitle {
+        font-size: 24px;
+      }
+
+      .prop-value {
+        font-size: 18px;
+      }
     }
   </style>
 </head>
 <body>
   <h1>2D Digital Twin</h1>
-  <div id="status">Loading live twin graph...</div>
-  <canvas id="twinCanvas" width="900" height="560"></canvas>
+  <div id="status">Loading twin graph...</div>
+  <canvas id="twinCanvas" width="950" height="520"></canvas>
 
   <div id="infoBox">
     <h3 id="infoTitle"></h3>
@@ -53,7 +125,8 @@
   </div>
 
   <script>
-    const API_URL = "https://iot-dt-fn-new-bwcwe8cphmg9aren.southeastasia-01.azurewebsites.net/api/GetTwinGraph";
+    const GRAPH_URL = "https://iot-dt-fn-new-bwcwe8cphmg9aren.southeastasia-01.azurewebsites.net/api/GetTwinGraph";
+    const TELEMETRY_URL = "https://iot-dt-fn-new-bwcwe8cphmg9aren.southeastasia-01.azurewebsites.net/api/GetTwinTelemetry?ids=R1,R2,R3,R4,R5";
 
     const canvas = document.getElementById("twinCanvas");
     const ctx = canvas.getContext("2d");
@@ -66,24 +139,66 @@
     let edges = [];
 
     function layoutGraph(rawNodes) {
-      const centerX = 450;
-      const centerY = 280;
-      const radius = 190;
+      const positions = {
+        "B10": { x: 475, y: 90 },
+        "R1":  { x: 90,  y: 240 },
+        "R2":  { x: 270, y: 280 },
+        "R3":  { x: 430, y: 330 },
+        "R4":  { x: 610, y: 290 },
+        "R5":  { x: 840, y: 250 }
+      };
 
-      if (rawNodes.length > 0) {
-        rawNodes[0].x = centerX;
-        rawNodes[0].y = centerY;
-      }
-
-      const others = rawNodes.slice(1);
-
-      others.forEach((node, index) => {
-        const angle = (2 * Math.PI * index) / Math.max(others.length, 1) - Math.PI / 2;
-        node.x = centerX + radius * Math.cos(angle);
-        node.y = centerY + radius * Math.sin(angle);
+      rawNodes.forEach(node => {
+        if (positions[node.id]) {
+          node.x = positions[node.id].x;
+          node.y = positions[node.id].y;
+        } else {
+          node.x = 475;
+          node.y = 420;
+        }
       });
 
       return rawNodes;
+    }
+
+    function getNodeColor(node) {
+      if (node.id === "B10") return "#b04bb3";
+
+      const aqi = node.telemetry?.aqi;
+      if (aqi === 1) return "#35c9dc";
+      if (aqi === 2) return "#f2c94c";
+      if (aqi >= 3) return "#eb5757";
+
+      return "#35c9dc";
+    }
+
+    function drawArrow(x1, y1, x2, y2) {
+      const headLength = 10;
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+      const nodeRadius = 28;
+
+      const startX = x1 + nodeRadius * Math.cos(angle);
+      const startY = y1 + nodeRadius * Math.sin(angle);
+      const endX = x2 - nodeRadius * Math.cos(angle);
+      const endY = y2 - nodeRadius * Math.sin(angle);
+
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(endX, endY);
+      ctx.lineTo(
+        endX - headLength * Math.cos(angle - Math.PI / 6),
+        endY - headLength * Math.sin(angle - Math.PI / 6)
+      );
+      ctx.lineTo(
+        endX - headLength * Math.cos(angle + Math.PI / 6),
+        endY - headLength * Math.sin(angle + Math.PI / 6)
+      );
+      ctx.closePath();
+      ctx.fill();
     }
 
     function drawGraph() {
@@ -92,47 +207,97 @@
       edges.forEach(edge => {
         const source = nodes.find(n => n.id === edge.source);
         const target = nodes.find(n => n.id === edge.target);
-
         if (!source || !target) return;
 
-        ctx.beginPath();
-        ctx.moveTo(source.x, source.y);
-        ctx.lineTo(target.x, target.y);
-        ctx.strokeStyle = "#9b4de0";
+        ctx.strokeStyle = "#b14acf";
+        ctx.fillStyle = "#b14acf";
         ctx.lineWidth = 3;
-        ctx.stroke();
+        drawArrow(source.x, source.y, target.x, target.y);
 
         const midX = (source.x + target.x) / 2;
         const midY = (source.y + target.y) / 2;
-        ctx.fillStyle = "#b9a8d8";
-        ctx.font = "12px Arial";
+        const angle = Math.atan2(target.y - source.y, target.x - source.x);
+
+        ctx.save();
+        ctx.translate(midX, midY);
+        ctx.rotate(angle);
+        ctx.fillStyle = "#a1a1aa";
+        ctx.font = "14px Arial";
         ctx.textAlign = "center";
-        ctx.fillText(edge.label || "", midX, midY - 8);
+        ctx.fillText(edge.label || "", 0, -8);
+        ctx.restore();
       });
 
-      nodes.forEach((node, index) => {
+      nodes.forEach(node => {
         ctx.beginPath();
         ctx.arc(node.x, node.y, 28, 0, Math.PI * 2);
-        ctx.fillStyle = index === 0 ? "#b05ad1" : "#27c1ff";
+        ctx.fillStyle = getNodeColor(node);
         ctx.fill();
 
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = "#17304f";
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = "#d9d9d9";
         ctx.stroke();
 
-        ctx.fillStyle = "white";
-        ctx.font = "bold 16px Arial";
+        ctx.fillStyle = "#e6e6e6";
+        ctx.font = "bold 18px Arial";
         ctx.textAlign = "center";
-        ctx.fillText(node.label || node.id, node.x, node.y + 5);
+        ctx.fillText(node.label || node.id, node.x, node.y - 38);
       });
+    }
+
+    function propCard(label, value) {
+      return `
+        <div class="prop-card">
+          <div class="prop-label">${label}</div>
+          <div class="prop-value">${value ?? "-"}</div>
+        </div>
+      `;
+    }
+
+    function metaCard(label, value) {
+      return `
+        <div class="meta-card">
+          <div class="prop-label">${label}</div>
+          <div class="prop-value" style="font-size:16px;">${value ?? "-"}</div>
+        </div>
+      `;
     }
 
     function showNodeInfo(node) {
       infoTitle.textContent = node.label || node.id;
-      infoContent.innerHTML = `
-        <div><strong>ID:</strong> ${node.id}</div>
-        <div><strong>Label:</strong> ${node.label || "-"}</div>
-      `;
+
+      if (node.telemetry) {
+        const t = node.telemetry;
+
+        infoContent.innerHTML = `
+          <div class="prop-grid">
+            ${propCard("AQI", t.aqi)}
+            ${propCard("eCO2", t.eco2)}
+            ${propCard("Humidity", t.hum)}
+            ${propCard("PM1", t.pm1)}
+            ${propCard("PM2.5", t.pm25)}
+            ${propCard("PM10", t.pm10)}
+            ${propCard("Temperature", t.temp)}
+            ${propCard("TVOC", t.tvoc)}
+          </div>
+
+          <div class="meta-row">
+            ${metaCard("Twin ID", node.id)}
+            ${metaCard("Node ID", t.nodeId)}
+            ${metaCard("Last Updated", t.lastUpdated)}
+            ${metaCard("Label", node.label || node.id)}
+          </div>
+        `;
+      } else {
+        infoContent.innerHTML = `
+          <div class="empty-note">No telemetry available for this room.</div>
+          <div class="meta-row">
+            ${metaCard("Twin ID", node.id)}
+            ${metaCard("Label", node.label || node.id)}
+          </div>
+        `;
+      }
+
       infoBox.style.display = "block";
     }
 
@@ -154,13 +319,23 @@
 
     async function loadTwinGraph() {
       try {
-        statusText.textContent = "Fetching live data...";
-        const response = await fetch(API_URL);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        statusText.textContent = "Fetching twin graph...";
 
-        const data = await response.json();
-        nodes = layoutGraph(data.nodes || []);
-        edges = data.edges || [];
+        const graphResponse = await fetch(GRAPH_URL);
+        if (!graphResponse.ok) throw new Error(`Graph HTTP ${graphResponse.status}`);
+        const graphData = await graphResponse.json();
+
+        const telemetryResponse = await fetch(TELEMETRY_URL);
+        if (!telemetryResponse.ok) throw new Error(`Telemetry HTTP ${telemetryResponse.status}`);
+        const telemetryData = await telemetryResponse.json();
+
+        nodes = layoutGraph(graphData.nodes || []);
+        edges = graphData.edges || [];
+
+        nodes = nodes.map(node => ({
+          ...node,
+          telemetry: telemetryData[node.id] || null
+        }));
 
         drawGraph();
         statusText.textContent = "Live twin graph loaded.";
