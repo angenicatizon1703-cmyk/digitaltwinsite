@@ -20,7 +20,6 @@
     #status {
       margin: 10px 0;
       font-size: 14px;
-      opacity: 0.9;
     }
 
     canvas {
@@ -40,10 +39,6 @@
       border: 1px solid #2b3a5c;
       text-align: left;
       display: none;
-    }
-
-    #infoBox h3 {
-      margin-top: 0;
     }
   </style>
 </head>
@@ -70,31 +65,20 @@
     let nodes = [];
     let edges = [];
 
-    function getNodeColor(node) {
-      const aqi = node.properties?.aqi;
-
-      if (aqi === 1) return "#19c37d";
-      if (aqi === 2) return "#f5c451";
-      if (aqi >= 3) return "#ef4444";
-
-      return node.type === "Building" ? "#b05ad1" : "#27c1ff";
-    }
-
     function layoutGraph(rawNodes) {
       const centerX = 450;
       const centerY = 280;
       const radius = 190;
 
-      const building = rawNodes.find(n => n.type?.toLowerCase().includes("building")) || rawNodes[0];
-      const others = rawNodes.filter(n => n !== building);
-
-      if (building) {
-        building.x = centerX;
-        building.y = centerY;
+      if (rawNodes.length > 0) {
+        rawNodes[0].x = centerX;
+        rawNodes[0].y = centerY;
       }
 
+      const others = rawNodes.slice(1);
+
       others.forEach((node, index) => {
-        const angle = (2 * Math.PI * index) / others.length - Math.PI / 2;
+        const angle = (2 * Math.PI * index) / Math.max(others.length, 1) - Math.PI / 2;
         node.x = centerX + radius * Math.cos(angle);
         node.y = centerY + radius * Math.sin(angle);
       });
@@ -122,40 +106,32 @@
         const midY = (source.y + target.y) / 2;
         ctx.fillStyle = "#b9a8d8";
         ctx.font = "12px Arial";
-        ctx.fillText(edge.relationship || "", midX + 6, midY - 6);
+        ctx.textAlign = "center";
+        ctx.fillText(edge.label || "", midX, midY - 8);
       });
 
-      nodes.forEach(node => {
+      nodes.forEach((node, index) => {
         ctx.beginPath();
         ctx.arc(node.x, node.y, 28, 0, Math.PI * 2);
-        ctx.fillStyle = getNodeColor(node);
+        ctx.fillStyle = index === 0 ? "#b05ad1" : "#27c1ff";
         ctx.fill();
 
         ctx.lineWidth = 4;
-        ctx.strokeStyle = node.type === "Building" ? "#ffffff" : "#17304f";
+        ctx.strokeStyle = "#17304f";
         ctx.stroke();
 
         ctx.fillStyle = "white";
         ctx.font = "bold 16px Arial";
         ctx.textAlign = "center";
-        ctx.fillText(node.id, node.x, node.y + 5);
+        ctx.fillText(node.label || node.id, node.x, node.y + 5);
       });
     }
 
     function showNodeInfo(node) {
-      infoTitle.textContent = `${node.id} (${node.type || "Twin"})`;
-
-      const p = node.properties || {};
+      infoTitle.textContent = node.label || node.id;
       infoContent.innerHTML = `
-        <div><strong>AQI:</strong> ${p.aqi ?? "-"}</div>
-        <div><strong>eCO2:</strong> ${p.eco2 ?? "-"}</div>
-        <div><strong>Humidity:</strong> ${p.hum ?? "-"}</div>
-        <div><strong>Node ID:</strong> ${p.nodeId ?? "-"}</div>
-        <div><strong>PM1:</strong> ${p.pm1 ?? "-"}</div>
-        <div><strong>PM10:</strong> ${p.pm10 ?? "-"}</div>
-        <div><strong>PM2.5:</strong> ${p.pm25 ?? "-"}</div>
-        <div><strong>Temperature:</strong> ${p.temp ?? "-"}</div>
-        <div><strong>TVOC:</strong> ${p.tvoc ?? "-"}</div>
+        <div><strong>ID:</strong> ${node.id}</div>
+        <div><strong>Label:</strong> ${node.label || "-"}</div>
       `;
       infoBox.style.display = "block";
     }
@@ -180,20 +156,9 @@
       try {
         statusText.textContent = "Fetching live data...";
         const response = await fetch(API_URL);
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         const data = await response.json();
-        console.log("Twin graph response:", data);
-
-        // Expected shape:
-        // {
-        //   nodes: [{ id, type, properties }],
-        //   edges: [{ source, target, relationship }]
-        // }
-
         nodes = layoutGraph(data.nodes || []);
         edges = data.edges || [];
 
