@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8" />
@@ -6,27 +7,206 @@
   <style>
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #0b1220;
+      background: #081224;
       color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .box {
+      font-family: Arial, sans-serif;
       text-align: center;
-      padding: 24px;
-      border: 1px solid #2a3550;
+    }
+
+    h1 {
+      margin-top: 20px;
+    }
+
+    #status {
+      margin: 10px 0;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    canvas {
+      background: #101a2f;
       border-radius: 16px;
-      background: #121a2b;
+      margin: 20px auto;
+      display: block;
+      max-width: 95vw;
+    }
+
+    #infoBox {
+      width: 320px;
+      margin: 20px auto;
+      padding: 16px;
+      border-radius: 14px;
+      background: #111b31;
+      border: 1px solid #2b3a5c;
+      text-align: left;
+      display: none;
+    }
+
+    #infoBox h3 {
+      margin-top: 0;
     }
   </style>
 </head>
 <body>
-  <div class="box">
-    <h1>2D Digital Twin</h1>
-    <p>GitHub Pages is working.</p>
+  <h1>2D Digital Twin</h1>
+  <div id="status">Loading live twin graph...</div>
+  <canvas id="twinCanvas" width="900" height="560"></canvas>
+
+  <div id="infoBox">
+    <h3 id="infoTitle"></h3>
+    <div id="infoContent"></div>
   </div>
+
+  <script>
+    const API_URL = "https://iot-dt-fn-new-bwcwe8cphmg9aren.southeastasia-01.azurewebsites.net/api/GetTwinGraph";
+
+    const canvas = document.getElementById("twinCanvas");
+    const ctx = canvas.getContext("2d");
+    const statusText = document.getElementById("status");
+    const infoBox = document.getElementById("infoBox");
+    const infoTitle = document.getElementById("infoTitle");
+    const infoContent = document.getElementById("infoContent");
+
+    let nodes = [];
+    let edges = [];
+
+    function getNodeColor(node) {
+      const aqi = node.properties?.aqi;
+
+      if (aqi === 1) return "#19c37d";
+      if (aqi === 2) return "#f5c451";
+      if (aqi >= 3) return "#ef4444";
+
+      return node.type === "Building" ? "#b05ad1" : "#27c1ff";
+    }
+
+    function layoutGraph(rawNodes) {
+      const centerX = 450;
+      const centerY = 280;
+      const radius = 190;
+
+      const building = rawNodes.find(n => n.type?.toLowerCase().includes("building")) || rawNodes[0];
+      const others = rawNodes.filter(n => n !== building);
+
+      if (building) {
+        building.x = centerX;
+        building.y = centerY;
+      }
+
+      others.forEach((node, index) => {
+        const angle = (2 * Math.PI * index) / others.length - Math.PI / 2;
+        node.x = centerX + radius * Math.cos(angle);
+        node.y = centerY + radius * Math.sin(angle);
+      });
+
+      return rawNodes;
+    }
+
+    function drawGraph() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      edges.forEach(edge => {
+        const source = nodes.find(n => n.id === edge.source);
+        const target = nodes.find(n => n.id === edge.target);
+
+        if (!source || !target) return;
+
+        ctx.beginPath();
+        ctx.moveTo(source.x, source.y);
+        ctx.lineTo(target.x, target.y);
+        ctx.strokeStyle = "#9b4de0";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        const midX = (source.x + target.x) / 2;
+        const midY = (source.y + target.y) / 2;
+        ctx.fillStyle = "#b9a8d8";
+        ctx.font = "12px Arial";
+        ctx.fillText(edge.relationship || "", midX + 6, midY - 6);
+      });
+
+      nodes.forEach(node => {
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, 28, 0, Math.PI * 2);
+        ctx.fillStyle = getNodeColor(node);
+        ctx.fill();
+
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = node.type === "Building" ? "#ffffff" : "#17304f";
+        ctx.stroke();
+
+        ctx.fillStyle = "white";
+        ctx.font = "bold 16px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(node.id, node.x, node.y + 5);
+      });
+    }
+
+    function showNodeInfo(node) {
+      infoTitle.textContent = `${node.id} (${node.type || "Twin"})`;
+
+      const p = node.properties || {};
+      infoContent.innerHTML = `
+        <div><strong>AQI:</strong> ${p.aqi ?? "-"}</div>
+        <div><strong>eCO2:</strong> ${p.eco2 ?? "-"}</div>
+        <div><strong>Humidity:</strong> ${p.hum ?? "-"}</div>
+        <div><strong>Node ID:</strong> ${p.nodeId ?? "-"}</div>
+        <div><strong>PM1:</strong> ${p.pm1 ?? "-"}</div>
+        <div><strong>PM10:</strong> ${p.pm10 ?? "-"}</div>
+        <div><strong>PM2.5:</strong> ${p.pm25 ?? "-"}</div>
+        <div><strong>Temperature:</strong> ${p.temp ?? "-"}</div>
+        <div><strong>TVOC:</strong> ${p.tvoc ?? "-"}</div>
+      `;
+      infoBox.style.display = "block";
+    }
+
+    canvas.addEventListener("click", (event) => {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const mouseX = (event.clientX - rect.left) * scaleX;
+      const mouseY = (event.clientY - rect.top) * scaleY;
+
+      const clicked = nodes.find(node => {
+        const dx = mouseX - node.x;
+        const dy = mouseY - node.y;
+        return Math.sqrt(dx * dx + dy * dy) <= 28;
+      });
+
+      if (clicked) showNodeInfo(clicked);
+    });
+
+    async function loadTwinGraph() {
+      try {
+        statusText.textContent = "Fetching live data...";
+        const response = await fetch(API_URL);
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Twin graph response:", data);
+
+        // Expected shape:
+        // {
+        //   nodes: [{ id, type, properties }],
+        //   edges: [{ source, target, relationship }]
+        // }
+
+        nodes = layoutGraph(data.nodes || []);
+        edges = data.edges || [];
+
+        drawGraph();
+        statusText.textContent = "Live twin graph loaded.";
+      } catch (error) {
+        console.error(error);
+        statusText.textContent = "Failed to load twin graph.";
+      }
+    }
+
+    loadTwinGraph();
+    setInterval(loadTwinGraph, 5000);
+  </script>
 </body>
 </html>
