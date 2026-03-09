@@ -171,36 +171,40 @@
     let nodes = [];
     let edges = [];
 
-  function layoutGraph(rawNodes) {
-    const positions = {
-      "B10":     { x: 550, y: 310 },
-  
-      "Node_01": { x: 110, y: 110 },
-      "Node_02": { x: 90,  y: 200 },
-      "Node_03": { x: 90,  y: 310 },
-      "Node_04": { x: 90,  y: 420 },
-      "Node_05": { x: 110, y: 530 },
-  
-      "Node_06": { x: 920, y: 120 },
-      "Node_07": { x: 930, y: 210 },
-      "Node_08": { x: 940, y: 300 },
-      "Node_09": { x: 940, y: 420 },
-      "Node_10": { x: 920, y: 520 }
-    };
-  
-    rawNodes.forEach(node => {
-      if (positions[node.id]) {
-        node.x = positions[node.id].x;
-        node.y = positions[node.id].y;
-      } else {
-        node.x = 550;
-        node.y = 310;
-      }
-    });
-  
-    return rawNodes;
-  }
-
+      function layoutGraph(rawNodes) {
+      const centerX = 525;
+      const centerY = 350;
+    
+      const spacing = 90;
+    
+      const positions = {
+        "B10": { x: centerX, y: centerY },
+    
+        "Node_01": { x: centerX - 350, y: centerY - spacing * 2 },
+        "Node_02": { x: centerX - 350, y: centerY - spacing },
+        "Node_03": { x: centerX - 350, y: centerY },
+        "Node_04": { x: centerX - 350, y: centerY + spacing },
+        "Node_05": { x: centerX - 350, y: centerY + spacing * 2 },
+    
+        "Node_06": { x: centerX + 350, y: centerY - spacing * 2 },
+        "Node_07": { x: centerX + 350, y: centerY - spacing },
+        "Node_08": { x: centerX + 350, y: centerY },
+        "Node_09": { x: centerX + 350, y: centerY + spacing },
+        "Node_10": { x: centerX + 350, y: centerY + spacing * 2 }
+      };
+    
+      rawNodes.forEach(node => {
+        if (positions[node.id]) {
+          node.x = positions[node.id].x;
+          node.y = positions[node.id].y;
+        } else {
+          node.x = centerX;
+          node.y = centerY;
+        }
+      });
+    
+      return rawNodes;
+    }
     function getNodeColor(node) {
       if (node.id === "B10") return "#b04bb3";
 
