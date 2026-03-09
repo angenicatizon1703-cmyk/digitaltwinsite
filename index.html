@@ -171,35 +171,35 @@
     let nodes = [];
     let edges = [];
 
-    function layoutGraph(rawNodes) {
-      const positions = {
-        "B10":     { x: 550, y: 90 },
-
-        "Node_01": { x: 130, y: 250 },
-        "Node_02": { x: 310, y: 250 },
-        "Node_03": { x: 490, y: 250 },
-        "Node_04": { x: 670, y: 250 },
-        "Node_05": { x: 850, y: 250 },
-
-        "Node_06": { x: 130, y: 470 },
-        "Node_07": { x: 310, y: 470 },
-        "Node_08": { x: 490, y: 470 },
-        "Node_09": { x: 670, y: 470 },
-        "Node_10": { x: 850, y: 470 }
-      };
-
-      rawNodes.forEach(node => {
-        if (positions[node.id]) {
-          node.x = positions[node.id].x;
-          node.y = positions[node.id].y;
-        } else {
-          node.x = 550;
-          node.y = 560;
-        }
-      });
-
-      return rawNodes;
-    }
+  function layoutGraph(rawNodes) {
+    const positions = {
+      "B10":     { x: 550, y: 310 },
+  
+      "Node_01": { x: 110, y: 110 },
+      "Node_02": { x: 90,  y: 200 },
+      "Node_03": { x: 90,  y: 310 },
+      "Node_04": { x: 90,  y: 420 },
+      "Node_05": { x: 110, y: 530 },
+  
+      "Node_06": { x: 920, y: 120 },
+      "Node_07": { x: 930, y: 210 },
+      "Node_08": { x: 940, y: 300 },
+      "Node_09": { x: 940, y: 420 },
+      "Node_10": { x: 920, y: 520 }
+    };
+  
+    rawNodes.forEach(node => {
+      if (positions[node.id]) {
+        node.x = positions[node.id].x;
+        node.y = positions[node.id].y;
+      } else {
+        node.x = 550;
+        node.y = 310;
+      }
+    });
+  
+    return rawNodes;
+  }
 
     function getNodeColor(node) {
       if (node.id === "B10") return "#b04bb3";
