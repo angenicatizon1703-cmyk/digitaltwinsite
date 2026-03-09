@@ -39,7 +39,7 @@
       border-radius: 16px;
       padding: 20px;
       box-sizing: border-box;
-      min-height: 620px;
+      min-height: 640px;
       box-shadow: 0 0 20px rgba(0,0,0,0.2);
     }
 
@@ -148,7 +148,7 @@
 
   <div class="main-layout">
     <div class="graph-panel">
-      <canvas id="twinCanvas" width="1100" height="620"></canvas>
+      <canvas id="twinCanvas" width="1050" height="640"></canvas>
     </div>
 
     <div id="infoBox">
@@ -282,7 +282,7 @@
         ctx.fillStyle = "#e6e6e6";
         ctx.font = "bold 17px Arial";
         ctx.textAlign = "center";
-        ctx.fillText(node.label || node.id, node.x, node.y - 42);
+        ctx.fillText(node.label || node.id, node.x + 18, node.y - 18);
       });
     }
 
