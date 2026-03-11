@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>2D Digital Twin</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       background: #081224;
@@ -16,20 +20,22 @@
     h1 {
       margin-top: 20px;
       margin-bottom: 8px;
+      padding: 0 12px;
+      font-size: clamp(24px, 4vw, 36px);
     }
 
     #status {
       margin: 10px 0 14px;
-      font-size: 14px;
+      padding: 0 12px;
+      font-size: clamp(13px, 2vw, 15px);
       color: #d6d6d6;
     }
 
     .main-layout {
-      width: 95%;
-      max-width: 1600px;
+      width: min(95%, 1600px);
       margin: 0 auto 40px;
       display: grid;
-      grid-template-columns: 2fr 1fr;
+      grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
       gap: 24px;
       align-items: start;
     }
@@ -38,17 +44,24 @@
       background: #101a2f;
       border-radius: 16px;
       padding: 20px;
-      box-sizing: border-box;
       min-height: 640px;
       box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+
+    .canvas-wrap {
+      width: 100%;
+      overflow: hidden;
     }
 
     canvas {
       background: transparent;
       display: block;
       width: 100%;
+      max-width: 100%;
       height: auto;
       margin: 0 auto;
+      touch-action: manipulation;
     }
 
     #infoBox {
@@ -59,14 +72,13 @@
       border: 1px solid #2b3a5c;
       text-align: left;
       display: none;
-      box-sizing: border-box;
       position: sticky;
       top: 20px;
     }
 
     #infoTitle {
       margin: 0 0 16px 0;
-      font-size: 28px;
+      font-size: clamp(22px, 3vw, 28px);
       font-weight: bold;
     }
 
@@ -81,7 +93,6 @@
       border: 1px solid #2a3f69;
       border-radius: 12px;
       padding: 12px 14px;
-      box-sizing: border-box;
     }
 
     .prop-label {
@@ -91,7 +102,7 @@
     }
 
     .prop-value {
-      font-size: 20px;
+      font-size: clamp(16px, 2vw, 20px);
       font-weight: bold;
       color: white;
       word-break: break-word;
@@ -121,23 +132,54 @@
         grid-template-columns: 1fr;
       }
 
+      .graph-panel {
+        min-height: auto;
+      }
+
       #infoBox {
         position: static;
       }
     }
 
     @media (max-width: 700px) {
+      .main-layout {
+        width: 94%;
+        gap: 16px;
+      }
+
+      .graph-panel,
+      #infoBox {
+        padding: 14px;
+        border-radius: 14px;
+      }
+
       .prop-grid,
       .meta-row {
         grid-template-columns: 1fr;
       }
+    }
 
-      #infoTitle {
-        font-size: 24px;
+    @media (max-width: 480px) {
+      h1 {
+        margin-top: 16px;
       }
 
-      .prop-value {
-        font-size: 18px;
+      #status {
+        margin-bottom: 10px;
+      }
+
+      .graph-panel,
+      #infoBox {
+        padding: 12px;
+      }
+
+      .prop-card,
+      .meta-card {
+        padding: 10px 12px;
+      }
+
+      .prop-label {
+        font-size: 12px;
       }
     }
   </style>
@@ -148,7 +190,9 @@
 
   <div class="main-layout">
     <div class="graph-panel">
-      <canvas id="twinCanvas" width="1050" height="700"></canvas>
+      <div class="canvas-wrap">
+        <canvas id="twinCanvas"></canvas>
+      </div>
     </div>
 
     <div id="infoBox">
@@ -167,32 +211,51 @@
     const infoBox = document.getElementById("infoBox");
     const infoTitle = document.getElementById("infoTitle");
     const infoContent = document.getElementById("infoContent");
+    const graphPanel = document.querySelector(".graph-panel");
 
     let nodes = [];
     let edges = [];
 
-      function layoutGraph(rawNodes) {
-      const centerX = 525;
-      const centerY = 350;
-    
-      const spacing = 90;
-    
+    const BASE_WIDTH = 1050;
+    const BASE_HEIGHT = 700;
+
+    function resizeCanvas() {
+      const panelWidth = graphPanel.clientWidth - 40;
+      const width = Math.max(320, Math.min(BASE_WIDTH, panelWidth));
+      const height = Math.max(420, width * (BASE_HEIGHT / BASE_WIDTH));
+
+      canvas.width = width;
+      canvas.height = height;
+      canvas.style.width = "100%";
+      canvas.style.height = "auto";
+    }
+
+    function layoutGraph(rawNodes) {
+      const w = canvas.width;
+      const h = canvas.height;
+
+      const centerX = w / 2;
+      const centerY = h / 2;
+
+      const sideOffset = Math.min(350, w * 0.33);
+      const spacing = Math.min(90, h * 0.13);
+
       const positions = {
         "B10": { x: centerX, y: centerY },
-    
-        "Node_01": { x: centerX - 350, y: centerY - spacing * 2 },
-        "Node_02": { x: centerX - 350, y: centerY - spacing },
-        "Node_03": { x: centerX - 350, y: centerY },
-        "Node_04": { x: centerX - 350, y: centerY + spacing },
-        "Node_05": { x: centerX - 350, y: centerY + spacing * 2 },
-    
-        "Node_06": { x: centerX + 350, y: centerY - spacing * 2 },
-        "Node_07": { x: centerX + 350, y: centerY - spacing },
-        "Node_08": { x: centerX + 350, y: centerY },
-        "Node_09": { x: centerX + 350, y: centerY + spacing },
-        "Node_10": { x: centerX + 350, y: centerY + spacing * 2 }
+
+        "Node_01": { x: centerX - sideOffset, y: centerY - spacing * 2 },
+        "Node_02": { x: centerX - sideOffset, y: centerY - spacing },
+        "Node_03": { x: centerX - sideOffset, y: centerY },
+        "Node_04": { x: centerX - sideOffset, y: centerY + spacing },
+        "Node_05": { x: centerX - sideOffset, y: centerY + spacing * 2 },
+
+        "Node_06": { x: centerX + sideOffset, y: centerY - spacing * 2 },
+        "Node_07": { x: centerX + sideOffset, y: centerY - spacing },
+        "Node_08": { x: centerX + sideOffset, y: centerY },
+        "Node_09": { x: centerX + sideOffset, y: centerY + spacing },
+        "Node_10": { x: centerX + sideOffset, y: centerY + spacing * 2 }
       };
-    
+
       rawNodes.forEach(node => {
         if (positions[node.id]) {
           node.x = positions[node.id].x;
@@ -202,9 +265,14 @@
           node.y = centerY;
         }
       });
-    
+
       return rawNodes;
     }
+
+    function getNodeRadius() {
+      return Math.max(20, Math.min(30, canvas.width * 0.028));
+    }
+
     function getNodeColor(node) {
       if (node.id === "B10") return "#b04bb3";
 
@@ -218,9 +286,9 @@
     }
 
     function drawArrow(x1, y1, x2, y2) {
-      const headLength = 10;
+      const nodeRadius = getNodeRadius();
+      const headLength = Math.max(8, nodeRadius * 0.35);
       const angle = Math.atan2(y2 - y1, x2 - x1);
-      const nodeRadius = 30;
 
       const startX = x1 + nodeRadius * Math.cos(angle);
       const startY = y1 + nodeRadius * Math.sin(angle);
@@ -249,6 +317,11 @@
     function drawGraph() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+      const nodeRadius = getNodeRadius();
+      const lineWidth = Math.max(2, canvas.width * 0.003);
+      const edgeFontSize = Math.max(10, Math.min(14, canvas.width * 0.014));
+      const nodeFontSize = Math.max(11, Math.min(17, canvas.width * 0.016));
+
       edges.forEach(edge => {
         const source = nodes.find(n => n.id === edge.source);
         const target = nodes.find(n => n.id === edge.target);
@@ -256,7 +329,7 @@
 
         ctx.strokeStyle = "#b14acf";
         ctx.fillStyle = "#b14acf";
-        ctx.lineWidth = 3;
+        ctx.lineWidth = lineWidth;
         drawArrow(source.x, source.y, target.x, target.y);
 
         const midX = (source.x + target.x) / 2;
@@ -267,7 +340,7 @@
         ctx.translate(midX, midY);
         ctx.rotate(angle);
         ctx.fillStyle = "#a1a1aa";
-        ctx.font = "14px Arial";
+        ctx.font = `${edgeFontSize}px Arial`;
         ctx.textAlign = "center";
         ctx.fillText(edge.label || "", 0, -8);
         ctx.restore();
@@ -275,18 +348,19 @@
 
       nodes.forEach(node => {
         ctx.beginPath();
-        ctx.arc(node.x, node.y, 30, 0, Math.PI * 2);
+        ctx.arc(node.x, node.y, nodeRadius, 0, Math.PI * 2);
         ctx.fillStyle = getNodeColor(node);
         ctx.fill();
 
-        ctx.lineWidth = 5;
+        ctx.lineWidth = Math.max(3, nodeRadius * 0.16);
         ctx.strokeStyle = "#d9d9d9";
         ctx.stroke();
 
         ctx.fillStyle = "#e6e6e6";
-        ctx.font = "bold 17px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText(node.label || node.id, node.x + 18, node.y - 18);
+        ctx.font = `bold ${nodeFontSize}px Arial`;
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        ctx.fillText(node.label || node.id, node.x + nodeRadius + 8, node.y);
       });
     }
 
@@ -364,7 +438,7 @@
       const clicked = nodes.find(node => {
         const dx = mouseX - node.x;
         const dy = mouseY - node.y;
-        return Math.sqrt(dx * dx + dy * dy) <= 30;
+        return Math.sqrt(dx * dx + dy * dy) <= getNodeRadius();
       });
 
       if (clicked) showNodeInfo(clicked);
@@ -382,6 +456,7 @@
         if (!telemetryResponse.ok) throw new Error(`Telemetry HTTP ${telemetryResponse.status}`);
         const telemetryData = await telemetryResponse.json();
 
+        resizeCanvas();
         nodes = layoutGraph(graphData.nodes || []);
         edges = graphData.edges || [];
 
@@ -397,6 +472,18 @@
         statusText.textContent = "Failed to load twin graph.";
       }
     }
+
+    let resizeTimeout;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        if (nodes.length) {
+          resizeCanvas();
+          nodes = layoutGraph(nodes);
+          drawGraph();
+        }
+      }, 150);
+    });
 
     loadTwinGraph();
     setInterval(loadTwinGraph, 5000);
