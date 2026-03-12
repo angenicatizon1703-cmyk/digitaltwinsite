@@ -149,37 +149,6 @@
       height: 100%;
     }
 
-    .viewer-overlay {
-      position: absolute;
-      left: 14px;
-      top: 14px;
-      z-index: 5;
-      width: min(330px, calc(100% - 28px));
-      padding: 16px;
-      border-radius: 14px;
-      background: rgba(17, 27, 49, 0.94);
-      border: 1px solid #2b3a5c;
-      text-align: left;
-      display: none;
-      backdrop-filter: blur(8px);
-    }
-
-    .viewer-overlay h4 {
-      margin: 0 0 10px;
-      font-size: 20px;
-    }
-
-    .viewer-line {
-      margin: 6px 0;
-      font-size: 14px;
-      color: #dfe8f8;
-    }
-
-    .viewer-line span:first-child {
-      color: #9bb0d3;
-      margin-right: 6px;
-    }
-
     .controls-row {
       display: flex;
       gap: 10px;
@@ -298,11 +267,21 @@
   <div id="status">Loading twin data...</div>
 
   <div class="main-layout">
+    <div class="info-panel">
+      <div class="panel-title">Room Information</div>
+      <div id="infoBox">
+        <h3 id="infoTitle">Select a room</h3>
+        <div id="infoContent">
+          <div class="empty-note">Click a room in the 3D model to view its telemetry.</div>
+        </div>
+      </div>
+    </div>
+
     <div class="viewer-panel">
       <div class="panel-title">3D Twin Viewer</div>
 
       <div class="viewer-stage">
-        </div><div id="threeContainer"></div>
+        <div id="threeContainer"></div>
       </div>
 
       <div class="controls-row">
@@ -315,16 +294,10 @@
         <div class="legend-item"><span class="legend-dot" style="background:#f2c94c;"></span>Moderate</div>
         <div class="legend-item"><span class="legend-dot" style="background:#eb5757;"></span>High</div>
       </div>
+
+      <div class="viewer-note">
+        Click a room in the 3D model to zoom in and show that room’s data.
       </div>
-    </div>
-    <div class="info-panel">
-      <div class="panel-title">Room Information</div>
-      <div id="infoBox">
-        <h3 id="infoTitle">Select a room</h3>
-        <div id="infoContent">
-          <div class="empty-note">Click a room in the 3D model to view its telemetry.</div>
-        </div>
-     </div>
     </div>
   </div>
 
@@ -571,7 +544,7 @@
       const center = box.getCenter(new THREE.Vector3());
       const size = box.getSize(new THREE.Vector3());
       const maxDim = Math.max(size.x, size.y, size.z);
-      const distance = Math.max(maxDim *2.5, 2);
+      const distance = Math.max(maxDim * 2.5, 2);
 
       const offset = new THREE.Vector3(
         distance * 0.8,
@@ -634,7 +607,7 @@
         if (!telemetryResponse.ok) throw new Error(`Telemetry HTTP ${telemetryResponse.status}`);
         const telemetryData = await telemetryResponse.json();
 
-        nodes = Object.keys(ROOM_TO_NODE).map((roomName, index) => {
+        nodes = Object.keys(ROOM_TO_NODE).map((roomName) => {
           const nodeId = ROOM_TO_NODE[roomName];
           const telemetry = telemetryData[nodeId] || null;
 
