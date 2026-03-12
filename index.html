@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>2D + 3D Digital Twin</title>
 
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-
   <style>
     * {
       box-sizing: border-box;
@@ -56,6 +54,7 @@
     .viewer-panel {
       display: flex;
       flex-direction: column;
+      position: relative;
     }
 
     .panel-title {
@@ -71,7 +70,7 @@
       overflow: hidden;
     }
 
-    canvas {
+    #twinCanvas {
       background: transparent;
       display: block;
       width: 100%;
@@ -145,6 +144,7 @@
     }
 
     .viewer-stage {
+      position: relative;
       flex: 1;
       min-height: 520px;
       border-radius: 12px;
@@ -153,25 +153,61 @@
       background:
         radial-gradient(circle at top, rgba(80,130,255,0.10), transparent 35%),
         linear-gradient(180deg, #0b1428 0%, #0a1324 100%);
-      padding: 10px;
     }
 
-    model-viewer {
+    #threeContainer {
       width: 100%;
-      min-height: 500px;
+      min-height: 520px;
       height: 100%;
-      background: transparent;
-      border-radius: 12px;
+      position: relative;
+      touch-action: none;
     }
 
-    .room-buttons {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
+    #threeContainer canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .viewer-overlay {
+      position: absolute;
+      left: 14px;
+      top: 14px;
+      z-index: 5;
+      width: min(330px, calc(100% - 28px));
+      padding: 16px;
+      border-radius: 14px;
+      background: rgba(17, 27, 49, 0.94);
+      border: 1px solid #2b3a5c;
+      text-align: left;
+      display: none;
+      backdrop-filter: blur(8px);
+    }
+
+    .viewer-overlay h4 {
+      margin: 0 0 10px;
+      font-size: 20px;
+    }
+
+    .viewer-line {
+      margin: 6px 0;
+      font-size: 14px;
+      color: #dfe8f8;
+    }
+
+    .viewer-line span:first-child {
+      color: #9bb0d3;
+      margin-right: 6px;
+    }
+
+    .controls-row {
+      display: flex;
       gap: 10px;
+      flex-wrap: wrap;
       margin-top: 14px;
     }
 
-    .room-btn {
+    .control-btn {
       border: 1px solid #2a3f69;
       background: #0d1730;
       color: white;
@@ -180,25 +216,11 @@
       font-size: 14px;
       font-weight: bold;
       cursor: pointer;
-      transition: 0.2s ease;
     }
 
-    .room-btn:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.08);
-    }
-
-    .room-btn.active {
+    .control-btn.active {
       outline: 2px solid white;
       outline-offset: 1px;
-    }
-
-    .viewer-note {
-      margin-top: 12px;
-      text-align: left;
-      font-size: 13px;
-      color: #b8c6df;
-      line-height: 1.5;
     }
 
     .legend {
@@ -224,16 +246,12 @@
       border: 1px solid rgba(255,255,255,0.5);
     }
 
-    .selected-status {
-      margin-top: 14px;
-      padding: 14px;
-      border-radius: 12px;
-      background: #0d1730;
-      border: 1px solid #2a3f69;
+    .viewer-note {
+      margin-top: 12px;
       text-align: left;
-      color: #dfe8f8;
+      font-size: 13px;
+      color: #b8c6df;
       line-height: 1.5;
-      min-height: 78px;
     }
 
     @media (max-width: 1450px) {
@@ -265,13 +283,13 @@
       }
 
       .prop-grid,
-      .meta-row,
-      .room-buttons {
+      .meta-row {
         grid-template-columns: 1fr;
       }
 
-      model-viewer {
-        min-height: 380px;
+      .viewer-stage,
+      #threeContainer {
+        min-height: 420px;
       }
     }
 
@@ -322,17 +340,20 @@
       <div class="panel-title">3D Twin Viewer</div>
 
       <div class="viewer-stage">
-        <model-viewer
-          id="buildingModel"
-          src="B10.glb"
-          alt="B10 3D Digital Twin Model"
-          camera-controls
-          auto-rotate
-          shadow-intensity="1"
-          exposure="1"
-          environment-image="neutral"
-          interaction-prompt="auto">
-        </model-viewer>
+        <div id="viewerOverlay" class="viewer-overlay">
+          <h4 id="overlayTitle">Room</h4>
+          <div class="viewer-line"><span>AQI:</span><span id="overlayAqi">-</span></div>
+          <div class="viewer-line"><span>Humidity:</span><span id="overlayHum">-</span></div>
+          <div class="viewer-line"><span>Temperature:</span><span id="overlayTemp">-</span></div>
+          <div class="viewer-line"><span>eCO2:</span><span id="overlayEco2">-</span></div>
+        </div>
+
+        <div id="threeContainer"></div>
+      </div>
+
+      <div class="controls-row">
+        <button id="resetViewBtn" class="control-btn">Reset View</button>
+        <button id="toggleColorBtn" class="control-btn">Live Room Colors: Off</button>
       </div>
 
       <div class="legend">
@@ -341,30 +362,17 @@
         <div class="legend-item"><span class="legend-dot" style="background:#eb5757;"></span>High</div>
       </div>
 
-      <div class="selected-status" id="selectedStatus">
-        Select a room below to show its sensor summary.
-      </div>
-
-      <div class="room-buttons" id="roomButtons">
-        <button class="room-btn" data-node-id="Node_01">Room 10.1.1</button>
-        <button class="room-btn" data-node-id="Node_02">Room 10.1.2</button>
-        <button class="room-btn" data-node-id="Node_03">Room 10.1.3</button>
-        <button class="room-btn" data-node-id="Node_04">Room 10.1.4</button>
-        <button class="room-btn" data-node-id="Node_05">Room 10.1.5</button>
-        <button class="room-btn" data-node-id="Node_06">Room 10.1.6</button>
-        <button class="room-btn" data-node-id="Node_07">Room 10.1.7</button>
-        <button class="room-btn" data-node-id="Node_08">Room 10.1.8</button>
-        <button class="room-btn" data-node-id="Node_09">Room 10.1.9</button>
-        <button class="room-btn" data-node-id="Node_10">Room 10.1.10</button>
-      </div>
-
       <div class="viewer-note">
-        This public 3D panel uses your uploaded <strong>B10.glb</strong> model and your live Azure Function telemetry.
+        Click a room in the 3D model to zoom in and show that room’s data.
       </div>
     </div>
   </div>
 
-  <script>
+  <script type="module">
+    import * as THREE from "https://esm.sh/three@0.160.0";
+    import { OrbitControls } from "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+    import { GLTFLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/GLTFLoader.js";
+
     const GRAPH_URL = "https://iot-dt-fn-new-bwcwe8cphmg9aren.southeastasia-01.azurewebsites.net/api/GetTwinGraph";
     const TELEMETRY_URL = "https://iot-dt-fn-new-bwcwe8cphmg9aren.southeastasia-01.azurewebsites.net/api/GetTwinTelemetry";
 
@@ -375,14 +383,44 @@
     const infoTitle = document.getElementById("infoTitle");
     const infoContent = document.getElementById("infoContent");
     const graphPanel = document.querySelector(".graph-panel");
-    const roomButtons = document.querySelectorAll(".room-btn");
-    const selectedStatus = document.getElementById("selectedStatus");
+
+    const overlay = document.getElementById("viewerOverlay");
+    const overlayTitle = document.getElementById("overlayTitle");
+    const overlayAqi = document.getElementById("overlayAqi");
+    const overlayHum = document.getElementById("overlayHum");
+    const overlayTemp = document.getElementById("overlayTemp");
+    const overlayEco2 = document.getElementById("overlayEco2");
+
+    const resetViewBtn = document.getElementById("resetViewBtn");
+    const toggleColorBtn = document.getElementById("toggleColorBtn");
+    const threeContainer = document.getElementById("threeContainer");
 
     let nodes = [];
     let edges = [];
 
     const BASE_WIDTH = 1050;
     const BASE_HEIGHT = 700;
+
+    const ROOM_TO_NODE = {
+      Room_01: "Node_01",
+      Room_02: "Node_02",
+      Room_03: "Node_03",
+      Room_04: "Node_04",
+      Room_05: "Node_05",
+      Room_06: "Node_06",
+      Room_07: "Node_07",
+      Room_08: "Node_08",
+      Room_09: "Node_09",
+      Room_10: "Node_10"
+    };
+
+    let scene, camera, renderer, controls, raycaster, mouse;
+    let modelRoot = null;
+    let roomMeshes = {};
+    let selectedMesh = null;
+    let enableLiveColors = false;
+    let defaultTarget = new THREE.Vector3(0, 0, 0);
+    let defaultCameraPosition = new THREE.Vector3(12, 10, 12);
 
     function resizeCanvas() {
       const panelWidth = graphPanel.clientWidth - 40;
@@ -442,20 +480,18 @@
       if (node.id === "B10") return "#b04bb3";
 
       const aqi = Number(node.telemetry?.aqi);
-
       if (aqi === 1) return "#35c9dc";
       if (aqi === 2) return "#f2c94c";
       if (aqi >= 3) return "#eb5757";
-
       return "#35c9dc";
     }
 
-    function getRoomColorByAqi(aqi) {
+    function getRoomColor(aqi) {
       const num = Number(aqi);
-      if (num === 1) return "#35c9dc";
-      if (num === 2) return "#f2c94c";
-      if (num >= 3) return "#eb5757";
-      return "#35c9dc";
+      if (num === 1) return new THREE.Color("#35c9dc");
+      if (num === 2) return new THREE.Color("#f2c94c");
+      if (num >= 3) return new THREE.Color("#eb5757");
+      return new THREE.Color("#e8e3da");
     }
 
     function drawArrow(x1, y1, x2, y2) {
@@ -521,7 +557,7 @@
 
       nodes.forEach(node => {
         ctx.beginPath();
-        ctx.arc(node.x, node.y, getNodeRadius(), 0, Math.PI * 2);
+        ctx.arc(node.x, node.y, nodeRadius, 0, Math.PI * 2);
         ctx.fillStyle = getNodeColor(node);
         ctx.fill();
 
@@ -533,7 +569,7 @@
         ctx.font = `bold ${nodeFontSize}px Arial`;
         ctx.textAlign = "left";
         ctx.textBaseline = "middle";
-        ctx.fillText(node.label || node.id, node.x + getNodeRadius() + 8, node.y);
+        ctx.fillText(node.label || node.id, node.x + nodeRadius + 8, node.y);
       });
     }
 
@@ -556,36 +592,6 @@
           <div class="prop-label">${label}</div>
           <div class="prop-value" style="font-size:16px;">${safeValue(value)}</div>
         </div>
-      `;
-    }
-
-    function getAqiStatusText(aqi) {
-      const num = Number(aqi);
-      if (num === 1) return "Air quality is good";
-      if (num === 2) return "Air quality is moderate";
-      if (num >= 3) return "Air quality is high";
-      return "Air quality status unavailable";
-    }
-
-    function getHumidityStatusText(hum) {
-      const num = Number(hum);
-      if (Number.isNaN(num)) return "Humidity unavailable";
-      if (num < 30) return "Humidity is low";
-      if (num <= 60) return "Humidity is acceptable";
-      return "Humidity is not good";
-    }
-
-    function showSelectedStatus(node) {
-      if (!node || !node.telemetry) {
-        selectedStatus.innerHTML = `No room data available.`;
-        return;
-      }
-
-      const t = node.telemetry;
-      selectedStatus.innerHTML = `
-        <strong>${safeValue(t.room_no || node.label || node.id)}</strong><br>
-        ${getAqiStatusText(t.aqi)}: <strong>${safeValue(t.aqi)}</strong><br>
-        ${getHumidityStatusText(t.hum)}: <strong>${safeValue(t.hum)}</strong>
       `;
     }
 
@@ -629,20 +635,194 @@
       }
 
       infoBox.style.display = "block";
-      setActiveRoomButton(node.id);
-      showSelectedStatus(node);
+
+      const t = node.telemetry || {};
+      overlayTitle.textContent = safeValue(t.room_no || node.label || node.id);
+      overlayAqi.textContent = safeValue(t.aqi);
+      overlayHum.textContent = safeValue(t.hum);
+      overlayTemp.textContent = safeValue(t.temp);
+      overlayEco2.textContent = safeValue(t.eco2);
+      overlay.style.display = "block";
     }
 
-    function setActiveRoomButton(nodeId) {
-      roomButtons.forEach(button => {
-        const isActive = button.dataset.nodeId === nodeId;
-        button.classList.toggle("active", isActive);
+    function initThree() {
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color("#0b1428");
 
-        const node = nodes.find(n => n.id === button.dataset.nodeId);
-        const color = getRoomColorByAqi(node?.telemetry?.aqi);
-        button.style.background = color;
-        button.style.color = "#081224";
+      const width = threeContainer.clientWidth || 600;
+      const height = threeContainer.clientHeight || 520;
+
+      camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+      camera.position.copy(defaultCameraPosition);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(width, height);
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      threeContainer.appendChild(renderer.domElement);
+
+      controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.08;
+      controls.target.copy(defaultTarget);
+      controls.minDistance = 2;
+      controls.maxDistance = 50;
+
+      raycaster = new THREE.Raycaster();
+      mouse = new THREE.Vector2();
+
+      const ambient = new THREE.AmbientLight(0xffffff, 1.4);
+      scene.add(ambient);
+
+      const dir1 = new THREE.DirectionalLight(0xffffff, 1.8);
+      dir1.position.set(10, 15, 10);
+      scene.add(dir1);
+
+      const dir2 = new THREE.DirectionalLight(0xffffff, 0.9);
+      dir2.position.set(-8, 8, -10);
+      scene.add(dir2);
+
+      const hemi = new THREE.HemisphereLight(0xa8cfff, 0x1b2236, 1.1);
+      scene.add(hemi);
+
+      const loader = new GLTFLoader();
+      loader.load(
+        "./B10.glb",
+        (gltf) => {
+          modelRoot = gltf.scene;
+          scene.add(modelRoot);
+
+          const rawBox = new THREE.Box3().setFromObject(modelRoot);
+          const rawCenter = rawBox.getCenter(new THREE.Vector3());
+          modelRoot.position.sub(rawCenter);
+
+          const sizedBox = new THREE.Box3().setFromObject(modelRoot);
+          const size = sizedBox.getSize(new THREE.Vector3());
+          const maxDim = Math.max(size.x, size.y, size.z);
+          const scale = 8 / maxDim;
+          modelRoot.scale.setScalar(scale);
+
+          const finalBox = new THREE.Box3().setFromObject(modelRoot);
+          const finalCenter = finalBox.getCenter(new THREE.Vector3());
+
+          defaultTarget.copy(finalCenter);
+          controls.target.copy(finalCenter);
+          defaultCameraPosition = new THREE.Vector3(
+            finalCenter.x + 10,
+            finalCenter.y + 8,
+            finalCenter.z + 10
+          );
+          camera.position.copy(defaultCameraPosition);
+
+          modelRoot.traverse((obj) => {
+            if (!obj.isMesh) return;
+
+            obj.material = obj.material.clone();
+
+            if (ROOM_TO_NODE[obj.name]) {
+              roomMeshes[obj.name] = obj;
+              obj.userData.nodeId = ROOM_TO_NODE[obj.name];
+              obj.userData.originalColor = obj.material.color ? obj.material.color.clone() : new THREE.Color("#e8e3da");
+
+              if ("emissive" in obj.material) {
+                obj.material.emissive = new THREE.Color(0x000000);
+                obj.material.emissiveIntensity = 0;
+              }
+            }
+          });
+
+          applyRoomColors();
+        },
+        undefined,
+        (error) => {
+          console.error("GLB load error:", error);
+        }
+      );
+
+      renderer.domElement.addEventListener("pointerdown", onRoomClick);
+      animate();
+    }
+
+    function applyRoomColors() {
+      Object.values(roomMeshes).forEach((mesh) => {
+        const nodeId = mesh.userData.nodeId;
+        const node = nodes.find(n => n.id === nodeId);
+
+        if (enableLiveColors && mesh.material.color) {
+          mesh.material.color.copy(getRoomColor(node?.telemetry?.aqi));
+        } else if (mesh.material.color && mesh.userData.originalColor) {
+          mesh.material.color.copy(mesh.userData.originalColor);
+        }
+
+        if ("emissive" in mesh.material) {
+          mesh.material.emissive.setHex(0x000000);
+          mesh.material.emissiveIntensity = 0;
+        }
       });
+
+      if (selectedMesh && "emissive" in selectedMesh.material) {
+        selectedMesh.material.emissive.setHex(0x3da9ff);
+        selectedMesh.material.emissiveIntensity = 0.45;
+      }
+    }
+
+    function selectRoom(mesh) {
+      selectedMesh = mesh;
+      applyRoomColors();
+
+      const nodeId = mesh.userData.nodeId;
+      const node = nodes.find(n => n.id === nodeId);
+      if (node) showNodeInfo(node);
+
+      const box = new THREE.Box3().setFromObject(mesh);
+      const center = box.getCenter(new THREE.Vector3());
+      const size = box.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z);
+      const distance = Math.max(maxDim * 3.2, 1.8);
+
+      const offset = new THREE.Vector3(distance, distance * 0.85, distance);
+      camera.position.copy(center.clone().add(offset));
+      controls.target.copy(center);
+      controls.update();
+    }
+
+    function onRoomClick(event) {
+      if (!renderer || !camera) return;
+
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+
+      const intersects = raycaster.intersectObjects(Object.values(roomMeshes), false);
+      if (intersects.length > 0) {
+        selectRoom(intersects[0].object);
+      }
+    }
+
+    function resetView() {
+      selectedMesh = null;
+      overlay.style.display = "none";
+      applyRoomColors();
+      camera.position.copy(defaultCameraPosition);
+      controls.target.copy(defaultTarget);
+      controls.update();
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      if (controls) controls.update();
+      if (renderer) renderer.render(scene, camera);
+    }
+
+    function resizeThree() {
+      if (!renderer || !camera) return;
+      const width = threeContainer.clientWidth || 600;
+      const height = threeContainer.clientHeight || 520;
+      renderer.setSize(width, height);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
     }
 
     canvas.addEventListener("click", (event) => {
@@ -658,14 +838,13 @@
         return Math.sqrt(dx * dx + dy * dy) <= getNodeRadius();
       });
 
-      if (clicked) showNodeInfo(clicked);
-    });
-
-    roomButtons.forEach(button => {
-      button.addEventListener("click", () => {
-        const node = nodes.find(n => n.id === button.dataset.nodeId);
-        if (node) showNodeInfo(node);
-      });
+      if (clicked) {
+        showNodeInfo(clicked);
+        const roomName = Object.keys(ROOM_TO_NODE).find(key => ROOM_TO_NODE[key] === clicked.id);
+        if (roomName && roomMeshes[roomName]) {
+          selectRoom(roomMeshes[roomName]);
+        }
+      }
     });
 
     async function loadTwinGraph() {
@@ -690,7 +869,7 @@
         }));
 
         drawGraph();
-        setActiveRoomButton("Node_06");
+        applyRoomColors();
         statusText.textContent = "Live twin graph loaded.";
 
         if (!infoBox.style.display || infoBox.style.display === "none") {
@@ -703,6 +882,15 @@
       }
     }
 
+    resetViewBtn.addEventListener("click", resetView);
+
+    toggleColorBtn.addEventListener("click", () => {
+      enableLiveColors = !enableLiveColors;
+      toggleColorBtn.textContent = `Live Room Colors: ${enableLiveColors ? "On" : "Off"}`;
+      toggleColorBtn.classList.toggle("active", enableLiveColors);
+      applyRoomColors();
+    });
+
     let resizeTimeout;
     window.addEventListener("resize", () => {
       clearTimeout(resizeTimeout);
@@ -712,9 +900,11 @@
           nodes = layoutGraph(nodes);
           drawGraph();
         }
+        resizeThree();
       }, 150);
     });
 
+    initThree();
     loadTwinGraph();
     setInterval(loadTwinGraph, 5000);
   </script>
