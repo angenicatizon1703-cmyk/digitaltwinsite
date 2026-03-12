@@ -160,9 +160,9 @@
       border: 1px solid #2a3f69;
       background: #0d1730;
       color: white;
-      border-radius: 10px;
-      padding: 10px 12px;
-      font-size: 14px;
+      border-radius: 12px;
+      padding: 14px 20px;
+      font-size: 16px;
       font-weight: bold;
       cursor: pointer;
     }
@@ -265,10 +265,30 @@
 <body>
   <h1>3D Digital Twin</h1>
   <div id="status">Loading twin data...</div>
-
+  
   <div class="main-layout">
     <div class="viewer-panel">
       <div class="panel-title">3D Twin Viewer</div>
+      <div class="viewer-stage">
+        <div id="threeContainer"></div>
+      </div>
+  
+      <div class="controls-row">
+        <button id="resetViewBtn" class="control-btn">Reset View</button>
+        <button id="toggleColorBtn" class="control-btn">Live Room Colors: Off</button>
+      </div>
+  
+      <div class="legend">
+        <div class="legend-item"><span class="legend-dot" style="background:#35c9dc;"></span>Good</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#f2c94c;"></span>Moderate</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#eb5757;"></span>High</div>
+      </div>
+  
+      <div class="viewer-note">
+        Click a room in the 3D model to zoom in and show that room’s data.
+      </div>
+    </div>
+  
     <div class="info-panel">
       <div class="panel-title">Room Information</div>
       <div id="infoBox">
@@ -276,26 +296,6 @@
         <div id="infoContent">
           <div class="empty-note">Click a room in the 3D model to view its telemetry.</div>
         </div>
-      </div>
-    </div>
-
-      <div class="viewer-stage">
-        <div id="threeContainer"></div>
-      </div>
-
-      <div class="controls-row">
-        <button id="resetViewBtn" class="control-btn">Reset View</button>
-        <button id="toggleColorBtn" class="control-btn">Live Room Colors: Off</button>
-      </div>
-
-      <div class="legend">
-        <div class="legend-item"><span class="legend-dot" style="background:#35c9dc;"></span>Good</div>
-        <div class="legend-item"><span class="legend-dot" style="background:#f2c94c;"></span>Moderate</div>
-        <div class="legend-item"><span class="legend-dot" style="background:#eb5757;"></span>High</div>
-      </div>
-
-      <div class="viewer-note">
-        Click a room in the 3D model to zoom in and show that room’s data.
       </div>
     </div>
   </div>
