@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>2D + 3D Digital Twin</title>
+
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+
   <style>
     * {
       box-sizing: border-box;
@@ -141,21 +144,53 @@
       font-size: 15px;
     }
 
-    .viewer-frame-wrap {
+    .viewer-stage {
       flex: 1;
-      min-height: 560px;
+      min-height: 520px;
       border-radius: 12px;
       overflow: hidden;
       border: 1px solid #2a3f69;
-      background: #0b1428;
+      background:
+        radial-gradient(circle at top, rgba(80,130,255,0.10), transparent 35%),
+        linear-gradient(180deg, #0b1428 0%, #0a1324 100%);
+      padding: 10px;
     }
 
-    #sceneFrame {
+    model-viewer {
       width: 100%;
+      min-height: 500px;
       height: 100%;
-      min-height: 560px;
-      border: none;
-      background: #0b1428;
+      background: transparent;
+      border-radius: 12px;
+    }
+
+    .room-buttons {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .room-btn {
+      border: 1px solid #2a3f69;
+      background: #0d1730;
+      color: white;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .room-btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.08);
+    }
+
+    .room-btn.active {
+      outline: 2px solid white;
+      outline-offset: 1px;
     }
 
     .viewer-note {
@@ -166,13 +201,39 @@
       line-height: 1.5;
     }
 
-    .viewer-note a {
-      color: #7dc7ff;
-      text-decoration: none;
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 14px;
+      margin-top: 12px;
+      justify-content: flex-start;
     }
 
-    .viewer-note a:hover {
-      text-decoration: underline;
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #d6e1f5;
+      font-size: 13px;
+    }
+
+    .legend-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.5);
+    }
+
+    .selected-status {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 12px;
+      background: #0d1730;
+      border: 1px solid #2a3f69;
+      text-align: left;
+      color: #dfe8f8;
+      line-height: 1.5;
+      min-height: 78px;
     }
 
     @media (max-width: 1450px) {
@@ -187,11 +248,6 @@
 
       #infoBox {
         position: static;
-      }
-
-      .viewer-frame-wrap,
-      #sceneFrame {
-        min-height: 600px;
       }
     }
 
@@ -209,13 +265,13 @@
       }
 
       .prop-grid,
-      .meta-row {
+      .meta-row,
+      .room-buttons {
         grid-template-columns: 1fr;
       }
 
-      .viewer-frame-wrap,
-      #sceneFrame {
-        min-height: 420px;
+      model-viewer {
+        min-height: 380px;
       }
     }
 
@@ -264,19 +320,46 @@
 
     <div class="viewer-panel">
       <div class="panel-title">3D Twin Viewer</div>
-      <div class="viewer-frame-wrap">
-        <iframe
-          id="sceneFrame"
-          src="https://explorer.digitaltwins.azure.net/3DScenes/?sceneId=fc76bf76b99649a0b2ceb0a708e28007&mode=Viewer&adtUrl=https%3A%2F%2Fdtresource.api.qac.digitaltwins.azure.net%2F&adtResourceId=%2Fsubscriptions%2F1c0707ec-aff3-4d02-a08a-ac5b7769245f%2FresourceGroups%2Fconnected_campus_rg%2Fproviders%2FMicrosoft.DigitalTwins%2FdigitalTwinsInstances%2FDTResource&storageUrl=https%3A%2F%2Fconnectedcampusrg9b57.blob.core.windows.net%2Fraw&tid=b30f4b44-46c6-4070-9997-f87b38d4771c"
-          title="3D Digital Twin Viewer"
-          loading="lazy"
-          allowfullscreen>
-        </iframe>
+
+      <div class="viewer-stage">
+        <model-viewer
+          id="buildingModel"
+          src="B10.glb"
+          alt="B10 3D Digital Twin Model"
+          camera-controls
+          auto-rotate
+          shadow-intensity="1"
+          exposure="1"
+          environment-image="neutral"
+          interaction-prompt="auto">
+        </model-viewer>
       </div>
+
+      <div class="legend">
+        <div class="legend-item"><span class="legend-dot" style="background:#35c9dc;"></span>Good</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#f2c94c;"></span>Moderate</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#eb5757;"></span>High</div>
+      </div>
+
+      <div class="selected-status" id="selectedStatus">
+        Select a room below to show its sensor summary.
+      </div>
+
+      <div class="room-buttons" id="roomButtons">
+        <button class="room-btn" data-node-id="Node_01">Room 10.1.1</button>
+        <button class="room-btn" data-node-id="Node_02">Room 10.1.2</button>
+        <button class="room-btn" data-node-id="Node_03">Room 10.1.3</button>
+        <button class="room-btn" data-node-id="Node_04">Room 10.1.4</button>
+        <button class="room-btn" data-node-id="Node_05">Room 10.1.5</button>
+        <button class="room-btn" data-node-id="Node_06">Room 10.1.6</button>
+        <button class="room-btn" data-node-id="Node_07">Room 10.1.7</button>
+        <button class="room-btn" data-node-id="Node_08">Room 10.1.8</button>
+        <button class="room-btn" data-node-id="Node_09">Room 10.1.9</button>
+        <button class="room-btn" data-node-id="Node_10">Room 10.1.10</button>
+      </div>
+
       <div class="viewer-note">
-        If the 3D viewer does not appear, Azure may be blocking iframe embedding.
-        In that case, open it directly
-        <a href="https://explorer.digitaltwins.azure.net/3DScenes/?sceneId=fc76bf76b99649a0b2ceb0a708e28007&mode=Viewer&adtUrl=https%3A%2F%2Fdtresource.api.qac.digitaltwins.azure.net%2F&adtResourceId=%2Fsubscriptions%2F1c0707ec-aff3-4d02-a08a-ac5b7769245f%2FresourceGroups%2Fconnected_campus_rg%2Fproviders%2FMicrosoft.DigitalTwins%2FdigitalTwinsInstances%2FDTResource&storageUrl=https%3A%2F%2Fconnectedcampusrg9b57.blob.core.windows.net%2Fraw&tid=b30f4b44-46c6-4070-9997-f87b38d4771c" target="_blank" rel="noopener noreferrer">here</a>.
+        This public 3D panel uses your uploaded <strong>B10.glb</strong> model and your live Azure Function telemetry.
       </div>
     </div>
   </div>
@@ -292,6 +375,8 @@
     const infoTitle = document.getElementById("infoTitle");
     const infoContent = document.getElementById("infoContent");
     const graphPanel = document.querySelector(".graph-panel");
+    const roomButtons = document.querySelectorAll(".room-btn");
+    const selectedStatus = document.getElementById("selectedStatus");
 
     let nodes = [];
     let edges = [];
@@ -362,6 +447,14 @@
       if (aqi === 2) return "#f2c94c";
       if (aqi >= 3) return "#eb5757";
 
+      return "#35c9dc";
+    }
+
+    function getRoomColorByAqi(aqi) {
+      const num = Number(aqi);
+      if (num === 1) return "#35c9dc";
+      if (num === 2) return "#f2c94c";
+      if (num >= 3) return "#eb5757";
       return "#35c9dc";
     }
 
@@ -466,6 +559,36 @@
       `;
     }
 
+    function getAqiStatusText(aqi) {
+      const num = Number(aqi);
+      if (num === 1) return "Air quality is good";
+      if (num === 2) return "Air quality is moderate";
+      if (num >= 3) return "Air quality is high";
+      return "Air quality status unavailable";
+    }
+
+    function getHumidityStatusText(hum) {
+      const num = Number(hum);
+      if (Number.isNaN(num)) return "Humidity unavailable";
+      if (num < 30) return "Humidity is low";
+      if (num <= 60) return "Humidity is acceptable";
+      return "Humidity is not good";
+    }
+
+    function showSelectedStatus(node) {
+      if (!node || !node.telemetry) {
+        selectedStatus.innerHTML = `No room data available.`;
+        return;
+      }
+
+      const t = node.telemetry;
+      selectedStatus.innerHTML = `
+        <strong>${safeValue(t.room_no || node.label || node.id)}</strong><br>
+        ${getAqiStatusText(t.aqi)}: <strong>${safeValue(t.aqi)}</strong><br>
+        ${getHumidityStatusText(t.hum)}: <strong>${safeValue(t.hum)}</strong>
+      `;
+    }
+
     function showNodeInfo(node) {
       infoTitle.textContent = node.label || node.id;
 
@@ -506,6 +629,20 @@
       }
 
       infoBox.style.display = "block";
+      setActiveRoomButton(node.id);
+      showSelectedStatus(node);
+    }
+
+    function setActiveRoomButton(nodeId) {
+      roomButtons.forEach(button => {
+        const isActive = button.dataset.nodeId === nodeId;
+        button.classList.toggle("active", isActive);
+
+        const node = nodes.find(n => n.id === button.dataset.nodeId);
+        const color = getRoomColorByAqi(node?.telemetry?.aqi);
+        button.style.background = color;
+        button.style.color = "#081224";
+      });
     }
 
     canvas.addEventListener("click", (event) => {
@@ -522,6 +659,13 @@
       });
 
       if (clicked) showNodeInfo(clicked);
+    });
+
+    roomButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        const node = nodes.find(n => n.id === button.dataset.nodeId);
+        if (node) showNodeInfo(node);
+      });
     });
 
     async function loadTwinGraph() {
@@ -546,7 +690,13 @@
         }));
 
         drawGraph();
+        setActiveRoomButton("Node_06");
         statusText.textContent = "Live twin graph loaded.";
+
+        if (!infoBox.style.display || infoBox.style.display === "none") {
+          const defaultNode = nodes.find(n => n.id === "Node_06") || nodes.find(n => n.id !== "B10");
+          if (defaultNode) showNodeInfo(defaultNode);
+        }
       } catch (error) {
         console.error(error);
         statusText.textContent = "Failed to load twin graph.";
