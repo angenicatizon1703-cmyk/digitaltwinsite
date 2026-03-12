@@ -298,29 +298,11 @@
   <div id="status">Loading twin data...</div>
 
   <div class="main-layout">
-    <div class="info-panel">
-      <div class="panel-title">Room Information</div>
-      <div id="infoBox">
-        <h3 id="infoTitle">Select a room</h3>
-        <div id="infoContent">
-          <div class="empty-note">Click a room in the 3D model to view its telemetry.</div>
-        </div>
-      </div>
-    </div>
-
     <div class="viewer-panel">
       <div class="panel-title">3D Twin Viewer</div>
 
       <div class="viewer-stage">
-        <div id="viewerOverlay" class="viewer-overlay">
-          <h4 id="overlayTitle">Room</h4>
-          <div class="viewer-line"><span>AQI:</span><span id="overlayAqi">-</span></div>
-          <div class="viewer-line"><span>Humidity:</span><span id="overlayHum">-</span></div>
-          <div class="viewer-line"><span>Temperature:</span><span id="overlayTemp">-</span></div>
-          <div class="viewer-line"><span>eCO2:</span><span id="overlayEco2">-</span></div>
-        </div>
-
-        <div id="threeContainer"></div>
+        </div><div id="threeContainer"></div>
       </div>
 
       <div class="controls-row">
@@ -333,10 +315,16 @@
         <div class="legend-item"><span class="legend-dot" style="background:#f2c94c;"></span>Moderate</div>
         <div class="legend-item"><span class="legend-dot" style="background:#eb5757;"></span>High</div>
       </div>
-
-      <div class="viewer-note">
-        Click a room in the 3D model to zoom in and show that room’s data.
       </div>
+    </div>
+    <div class="info-panel">
+      <div class="panel-title">Room Information</div>
+      <div id="infoBox">
+        <h3 id="infoTitle">Select a room</h3>
+        <div id="infoContent">
+          <div class="empty-note">Click a room in the 3D model to view its telemetry.</div>
+        </div>
+     </div>
     </div>
   </div>
 
@@ -350,13 +338,6 @@
     const statusText = document.getElementById("status");
     const infoTitle = document.getElementById("infoTitle");
     const infoContent = document.getElementById("infoContent");
-
-    const overlay = document.getElementById("viewerOverlay");
-    const overlayTitle = document.getElementById("overlayTitle");
-    const overlayAqi = document.getElementById("overlayAqi");
-    const overlayHum = document.getElementById("overlayHum");
-    const overlayTemp = document.getElementById("overlayTemp");
-    const overlayEco2 = document.getElementById("overlayEco2");
 
     const resetViewBtn = document.getElementById("resetViewBtn");
     const toggleColorBtn = document.getElementById("toggleColorBtn");
@@ -452,13 +433,6 @@
           </div>
         `;
       }
-
-      overlayTitle.textContent = safeValue(t.room_no || node.label || node.id);
-      overlayAqi.textContent = safeValue(t.aqi);
-      overlayHum.textContent = safeValue(t.hum);
-      overlayTemp.textContent = safeValue(t.temp);
-      overlayEco2.textContent = safeValue(t.eco2);
-      overlay.style.display = "block";
     }
 
     function initThree() {
@@ -627,7 +601,6 @@
 
     function resetView() {
       selectedMesh = null;
-      overlay.style.display = "none";
       infoTitle.textContent = "Select a room";
       infoContent.innerHTML = `
         <div class="empty-note">Click a room in the 3D model to view its telemetry.</div>
