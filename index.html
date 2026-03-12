@@ -415,11 +415,11 @@
     }
 
     function showNodeInfo(node) {
-      infoTitle.textContent = node.label || node.id;
+      const t = node.telemetry || {};
+
+      infoTitle.textContent = safeValue(t.room_no || node.label || node.id);
 
       if (node.telemetry) {
-        const t = node.telemetry;
-
         infoContent.innerHTML = `
           <div class="prop-grid">
             ${propCard("AQI", t.aqi)}
@@ -453,7 +453,6 @@
         `;
       }
 
-      const t = node.telemetry || {};
       overlayTitle.textContent = safeValue(t.room_no || node.label || node.id);
       overlayAqi.textContent = safeValue(t.aqi);
       overlayHum.textContent = safeValue(t.hum);
@@ -539,7 +538,9 @@
             if (ROOM_TO_NODE[obj.name]) {
               roomMeshes[obj.name] = obj;
               obj.userData.nodeId = ROOM_TO_NODE[obj.name];
-              obj.userData.originalColor = obj.material.color ? obj.material.color.clone() : new THREE.Color("#e8e3da");
+              obj.userData.originalColor = obj.material.color
+                ? obj.material.color.clone()
+                : new THREE.Color("#e8e3da");
 
               if ("emissive" in obj.material) {
                 obj.material.emissive = new THREE.Color(0x000000);
@@ -627,6 +628,10 @@
     function resetView() {
       selectedMesh = null;
       overlay.style.display = "none";
+      infoTitle.textContent = "Select a room";
+      infoContent.innerHTML = `
+        <div class="empty-note">Click a room in the 3D model to view its telemetry.</div>
+      `;
       applyRoomColors();
       camera.position.copy(defaultCameraPosition);
       controls.target.copy(defaultTarget);
@@ -658,10 +663,12 @@
 
         nodes = Object.keys(ROOM_TO_NODE).map((roomName, index) => {
           const nodeId = ROOM_TO_NODE[roomName];
+          const telemetry = telemetryData[nodeId] || null;
+
           return {
             id: nodeId,
-            label: roomName.replace("Room_", "Room "),
-            telemetry: telemetryData[nodeId] || null
+            label: telemetry?.room_no || roomName.replace("Room_", ""),
+            telemetry: telemetry
           };
         });
 
