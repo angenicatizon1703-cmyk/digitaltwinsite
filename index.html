@@ -667,6 +667,7 @@
       controls.target.copy(defaultTarget);
       controls.minDistance = 2;
       controls.maxDistance = 50;
+      controls.minDistance = 4;
 
       raycaster = new THREE.Raycaster();
       mouse = new THREE.Vector2();
@@ -708,9 +709,9 @@
           defaultTarget.copy(finalCenter);
           controls.target.copy(finalCenter);
           defaultCameraPosition = new THREE.Vector3(
-            finalCenter.x + 10,
-            finalCenter.y + 8,
-            finalCenter.z + 10
+            finalCenter.x + 16,
+            finalCenter.y + 12,
+            finalCenter.z + 16
           );
           camera.position.copy(defaultCameraPosition);
 
@@ -769,18 +770,26 @@
     function selectRoom(mesh) {
       selectedMesh = mesh;
       applyRoomColors();
-
+    
       const nodeId = mesh.userData.nodeId;
       const node = nodes.find(n => n.id === nodeId);
       if (node) showNodeInfo(node);
-
+    
       const box = new THREE.Box3().setFromObject(mesh);
       const center = box.getCenter(new THREE.Vector3());
       const size = box.getSize(new THREE.Vector3());
+    
       const maxDim = Math.max(size.x, size.y, size.z);
-      const distance = Math.max(maxDim * 3.2, 1.8);
-
-      const offset = new THREE.Vector3(distance, distance * 0.85, distance);
+    
+      // farther and higher camera position
+      const distance = Math.max(maxDim * 5.5, 3.5);
+    
+      const offset = new THREE.Vector3(
+        distance * 1.2,
+        distance * 1.0,
+        distance * 1.2
+      );
+    
       camera.position.copy(center.clone().add(offset));
       controls.target.copy(center);
       controls.update();
