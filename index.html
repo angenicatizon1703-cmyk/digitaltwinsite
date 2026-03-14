@@ -157,9 +157,16 @@
       touch-action: manipulation;
     }
 
-    #threeContainer {
+    .viewer-3d-wrap {
+      position: relative;
       width: 100%;
       height: calc(100% - 36px);
+      min-height: 500px;
+    }
+
+    #threeContainer {
+      width: 100%;
+      height: 100%;
       min-height: 500px;
       position: relative;
       touch-action: none;
@@ -171,6 +178,30 @@
       display: block;
       width: 100%;
       height: 100%;
+    }
+
+    .viewer-summary-overlay {
+      position: absolute;
+      left: 16px;
+      bottom: 16px;
+      width: min(340px, calc(100% - 32px));
+      background: rgba(13, 23, 48, 0.92);
+      border: 1px solid #2a3f69;
+      border-radius: 14px;
+      padding: 14px 16px;
+      text-align: left;
+      color: #dfe8f8;
+      line-height: 1.5;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.28);
+      z-index: 5;
+    }
+
+    .viewer-summary-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: #9bb0d3;
+      margin-bottom: 8px;
     }
 
     .legend {
@@ -194,6 +225,18 @@
       height: 14px;
       border-radius: 50%;
       border: 1px solid rgba(255,255,255,0.5);
+    }
+
+    .selected-status {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 12px;
+      background: #0d1730;
+      border: 1px solid #2a3f69;
+      text-align: left;
+      color: #dfe8f8;
+      line-height: 1.5;
+      min-height: 78px;
     }
 
     .viewer-note {
@@ -261,18 +304,6 @@
       font-size: 15px;
     }
 
-    .selected-status {
-      margin-top: 14px;
-      padding: 14px;
-      border-radius: 12px;
-      background: #0d1730;
-      border: 1px solid #2a3f69;
-      text-align: left;
-      color: #dfe8f8;
-      line-height: 1.5;
-      min-height: 78px;
-    }
-
     @media (max-width: 1100px) {
       .main-layout {
         grid-template-columns: 1fr;
@@ -304,8 +335,17 @@
       .flip-scene,
       .flip-card,
       .flip-face,
+      .viewer-3d-wrap,
       #threeContainer {
         min-height: 420px;
+      }
+
+      .viewer-summary-overlay {
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        width: auto;
+        padding: 12px 14px;
       }
     }
   </style>
@@ -335,7 +375,16 @@
 
           <div class="flip-face back">
             <div class="face-title">3D Twin Viewer</div>
-            <div id="threeContainer"></div>
+            <div class="viewer-3d-wrap">
+              <div id="threeContainer"></div>
+
+              <div class="viewer-summary-overlay" id="viewerSummaryOverlay">
+                <div class="viewer-summary-title">Room Summary</div>
+                <div id="viewerSummaryContent">
+                  Select a room in 2D or 3D to view its summary.
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -355,7 +404,7 @@
       </div>
     </div>
 
-    <div class="info-panel">
+    <div class="info-panel" id="infoPanel">
       <div class="panel-title">Room Information</div>
       <div id="infoBox">
         <h3 id="infoTitle">Select a room</h3>
@@ -404,6 +453,8 @@
     const infoTitle = document.getElementById("infoTitle");
     const infoContent = document.getElementById("infoContent");
     const selectedStatus = document.getElementById("selectedStatus");
+    const infoPanel = document.getElementById("infoPanel");
+    const viewerSummaryContent = document.getElementById("viewerSummaryContent");
 
     const flipCard = document.getElementById("flipCard");
     const flipViewBtn = document.getElementById("flipViewBtn");
@@ -488,11 +539,13 @@
     function showSelectedStatus(node) {
       if (!node || !node.telemetry) {
         selectedStatus.innerHTML = `No room data available.`;
+        viewerSummaryContent.innerHTML = `No room data available.`;
         return;
       }
 
       const t = node.telemetry;
-      selectedStatus.innerHTML = `
+
+      const summaryHtml = `
         <strong>${safeValue(t.room_no || node.label || node.id)}</strong><br>
         ${getAqiStatusText(t.aqi)}: <strong>${safeValue(t.aqi)}</strong><br>
         ${getHumidityStatusText(t.hum)}: <strong>${safeValue(t.hum)}</strong><br>
@@ -500,6 +553,9 @@
         eCO2: <strong>${safeValue(t.eco2)}</strong><br>
         PM2.5: <strong>${safeValue(t.pm25)}</strong>
       `;
+
+      selectedStatus.innerHTML = summaryHtml;
+      viewerSummaryContent.innerHTML = summaryHtml;
     }
 
     function clearRoomInfo() {
@@ -508,6 +564,7 @@
         <div class="empty-note">Click a room in the 2D graph or 3D model to view its telemetry.</div>
       `;
       selectedStatus.innerHTML = `Select a room in 2D or 3D to show its sensor summary.`;
+      viewerSummaryContent.innerHTML = `Select a room in 2D or 3D to view its summary.`;
     }
 
     function showNodeInfo(node) {
@@ -963,6 +1020,14 @@
       flipCard.classList.toggle("is-flipped", isShowing3D);
       flipViewBtn.textContent = isShowing3D ? "Back to 2D View" : "Switch to 3D View";
 
+      if (isShowing3D) {
+        infoPanel.style.display = "none";
+        selectedStatus.style.display = "none";
+      } else {
+        infoPanel.style.display = "block";
+        selectedStatus.style.display = "block";
+      }
+
       setTimeout(() => {
         resizeCanvas();
         drawGraph();
@@ -991,6 +1056,9 @@
         resizeThree();
       }, 150);
     });
+
+    infoPanel.style.display = "block";
+    selectedStatus.style.display = "block";
 
     initThree();
     loadTwinData();
