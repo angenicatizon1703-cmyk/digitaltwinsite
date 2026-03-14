@@ -229,6 +229,7 @@
     }
 
     .selected-status {
+      display: none;
       margin-top: 14px;
       padding: 14px;
       border-radius: 12px;
@@ -1020,13 +1021,13 @@
       isShowing3D = !isShowing3D;
       flipCard.classList.toggle("is-flipped", isShowing3D);
       flipViewBtn.textContent = isShowing3D ? "Back to 2D View" : "Switch to 3D View";
-
+    
       if (isShowing3D) {
         infoPanel.style.display = "none";
-        selectedStatus.style.display = "none";
+        selectedStatus.style.display = "block";
       } else {
         infoPanel.style.display = "block";
-        selectedStatus.style.display = "block";
+        selectedStatus.style.display = "none";
       }
 
       setTimeout(() => {
