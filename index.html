@@ -747,7 +747,7 @@
           const sizedBox = new THREE.Box3().setFromObject(modelRoot);
           const size = sizedBox.getSize(new THREE.Vector3());
           const maxDim = Math.max(size.x, size.y, size.z);
-          const scale = 8 / maxDim;
+          const scale = 14 / maxDim;
           modelRoot.scale.setScalar(scale);
 
           const finalBox = new THREE.Box3().setFromObject(modelRoot);
@@ -756,9 +756,9 @@
           defaultTarget.copy(finalCenter);
           controls.target.copy(finalCenter);
           defaultCameraPosition = new THREE.Vector3(
-            finalCenter.x + 5,
-            finalCenter.y + 3.5,
-            finalCenter.z + 5
+            finalCenter.x + 4,
+            finalCenter.y + 3,
+            finalCenter.z + 4
           );
           camera.position.copy(defaultCameraPosition);
 
