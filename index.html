@@ -747,7 +747,7 @@
           const sizedBox = new THREE.Box3().setFromObject(modelRoot);
           const size = sizedBox.getSize(new THREE.Vector3());
           const maxDim = Math.max(size.x, size.y, size.z);
-          const scale = 10 / maxDim;
+          const scale = 9 / maxDim;
           modelRoot.scale.setScalar(scale);
 
           const finalBox = new THREE.Box3().setFromObject(modelRoot);
