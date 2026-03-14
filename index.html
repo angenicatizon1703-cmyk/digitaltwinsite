@@ -755,10 +755,12 @@
 
           defaultTarget.copy(finalCenter);
           controls.target.copy(finalCenter);
+          const distance = maxDim * 2;
+
           defaultCameraPosition = new THREE.Vector3(
-            finalCenter.x + 14,
-            finalCenter.y + 10,
-            finalCenter.z + 14
+            finalCenter.x + distance,
+            finalCenter.y + distance * 0.8,
+            finalCenter.z + distance
           );
           camera.position.copy(defaultCameraPosition);
 
