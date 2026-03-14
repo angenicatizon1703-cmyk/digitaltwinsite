@@ -495,8 +495,19 @@
       selectedStatus.innerHTML = `
         <strong>${safeValue(t.room_no || node.label || node.id)}</strong><br>
         ${getAqiStatusText(t.aqi)}: <strong>${safeValue(t.aqi)}</strong><br>
-        ${getHumidityStatusText(t.hum)}: <strong>${safeValue(t.hum)}</strong>
+        ${getHumidityStatusText(t.hum)}: <strong>${safeValue(t.hum)}</strong><br>
+        Temperature: <strong>${safeValue(t.temp)}°C</strong><br>
+        eCO2: <strong>${safeValue(t.eco2)}</strong><br>
+        PM2.5: <strong>${safeValue(t.pm25)}</strong>
       `;
+    }
+
+    function clearRoomInfo() {
+      infoTitle.textContent = "Select a room";
+      infoContent.innerHTML = `
+        <div class="empty-note">Click a room in the 2D graph or 3D model to view its telemetry.</div>
+      `;
+      selectedStatus.innerHTML = `Select a room in 2D or 3D to show its sensor summary.`;
     }
 
     function showNodeInfo(node) {
@@ -547,10 +558,9 @@
       const roomMesh = Object.values(roomMeshes).find(
         mesh => mesh.userData.nodeId === node.id
       );
-      if (roomMesh) {
-        selectedMesh = roomMesh;
-        applyRoomColors();
-      }
+
+      selectedMesh = roomMesh || null;
+      applyRoomColors();
     }
 
     function resizeCanvas() {
@@ -858,16 +868,6 @@
     }
 
     function resetView() {
-      selectedMesh = null;
-      selectedNodeId = null;
-      infoTitle.textContent = "Select a room";
-      infoContent.innerHTML = `
-        <div class="empty-note">Click a room in the 2D graph or 3D model to view its telemetry.</div>
-      `;
-      selectedStatus.innerHTML = `Select a room in 2D or 3D to show its sensor summary.`;
-      drawGraph();
-      applyRoomColors();
-
       if (camera && controls) {
         camera.position.copy(defaultCameraPosition);
         controls.target.copy(defaultTarget);
@@ -927,19 +927,28 @@
         edges = graphData.edges || [];
         nodes = layoutGraph((graphData.nodes || []).map(node => ({
           ...node,
-          label: node.id === "B10" ? "B10" : (telemetryData[node.id]?.room_no || NODE_TO_ROOM_LABEL[node.id] || node.label || node.id),
+          label: node.id === "B10"
+            ? "B10"
+            : (telemetryData[node.id]?.room_no || NODE_TO_ROOM_LABEL[node.id] || node.label || node.id),
           telemetry: telemetryData[node.id] || null
         })));
 
         drawGraph();
         applyRoomColors();
 
-        if (!selectedNodeId) {
-          const defaultNode = nodes.find(n => n.id === "Node_01") || nodes.find(n => n.id !== "B10");
-          if (defaultNode) showNodeInfo(defaultNode);
-        } else {
+        if (selectedNodeId) {
           const selectedNode = nodes.find(n => n.id === selectedNodeId);
-          if (selectedNode) showNodeInfo(selectedNode);
+          if (selectedNode) {
+            showNodeInfo(selectedNode);
+          } else {
+            selectedNodeId = null;
+            selectedMesh = null;
+            clearRoomInfo();
+            drawGraph();
+            applyRoomColors();
+          }
+        } else {
+          clearRoomInfo();
         }
 
         statusText.textContent = "Live twin data loaded.";
