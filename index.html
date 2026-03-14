@@ -429,7 +429,7 @@
     let selectedMesh = null;
     let selectedNodeId = null;
     let defaultTarget = new THREE.Vector3(0, 0, 0);
-    let defaultCameraPosition = new THREE.Vector3(16, 12, 16);
+    let defaultCameraPosition = new THREE.Vector3(10, 7, 10);
 
     function safeValue(value) {
       return value === null || value === undefined || value === "" ? "-" : value;
@@ -757,7 +757,7 @@
           controls.target.copy(finalCenter);
           defaultCameraPosition = new THREE.Vector3(
             finalCenter.x + 5,
-            finalCenter.y + 3,
+            finalCenter.y + 3.5,
             finalCenter.z + 5
           );
           camera.position.copy(defaultCameraPosition);
