@@ -10,6 +10,11 @@
       box-sizing: border-box;
     }
 
+    html, body {
+      width: 100%;
+      overflow-x: hidden;
+    }
+
     body {
       margin: 0;
       background: #081224;
@@ -23,6 +28,7 @@
       margin-bottom: 8px;
       padding: 0 12px;
       font-size: clamp(24px, 4vw, 36px);
+      line-height: 1.2;
     }
 
     #status {
@@ -36,7 +42,7 @@
       width: min(96%, 1800px);
       margin: 0 auto 40px;
       display: grid;
-      grid-template-columns: minmax(700px, 2fr) minmax(280px, 0.85fr) minmax(320px, 1fr);
+      grid-template-columns: minmax(0, 2fr) minmax(260px, 0.85fr) minmax(280px, 1fr);
       gap: 24px;
       align-items: start;
       justify-content: center;
@@ -51,6 +57,8 @@
       min-height: 700px;
       box-shadow: 0 0 20px rgba(0,0,0,0.2);
       overflow: hidden;
+      width: 100%;
+      min-width: 0;
     }
 
     .viewer-panel {
@@ -60,10 +68,12 @@
 
     .panel-title {
       text-align: left;
-      font-size: 22px;
+      font-size: clamp(20px, 2.6vw, 22px);
       font-weight: bold;
       margin-bottom: 14px;
       color: white;
+      line-height: 1.2;
+      word-break: break-word;
     }
 
     .controls-row {
@@ -71,6 +81,7 @@
       gap: 10px;
       flex-wrap: wrap;
       margin-bottom: 14px;
+      justify-content: flex-start;
     }
 
     .control-btn {
@@ -79,10 +90,14 @@
       color: white;
       border-radius: 12px;
       padding: 14px 18px;
-      font-size: 15px;
+      font-size: clamp(13px, 1.7vw, 15px);
       font-weight: bold;
       cursor: pointer;
       transition: 0.2s ease;
+      min-height: 48px;
+      flex: 0 1 auto;
+      white-space: normal;
+      text-align: center;
     }
 
     .control-btn:hover {
@@ -135,9 +150,10 @@
 
     .face-title {
       text-align: left;
-      font-size: 18px;
+      font-size: clamp(16px, 2.2vw, 18px);
       font-weight: bold;
       margin-bottom: 10px;
+      line-height: 1.2;
     }
 
     .canvas-wrap {
@@ -198,6 +214,7 @@
       color: #dfe8f8;
       line-height: 1.6;
       min-height: 160px;
+      word-break: break-word;
     }
 
     .legend {
@@ -221,6 +238,7 @@
       height: 14px;
       border-radius: 50%;
       border: 1px solid rgba(255,255,255,0.5);
+      flex-shrink: 0;
     }
 
     .viewer-note {
@@ -235,17 +253,20 @@
       width: 100%;
       text-align: left;
       display: block;
+      min-width: 0;
     }
 
     #infoTitle {
       margin: 0 0 16px 0;
       font-size: clamp(22px, 3vw, 28px);
       font-weight: bold;
+      word-break: break-word;
+      line-height: 1.2;
     }
 
     .prop-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px 18px;
     }
 
@@ -254,12 +275,14 @@
       border: 1px solid #2a3f69;
       border-radius: 12px;
       padding: 12px 14px;
+      min-width: 0;
     }
 
     .prop-label {
       font-size: 13px;
       color: #9bb0d3;
       margin-bottom: 6px;
+      line-height: 1.3;
     }
 
     .prop-value {
@@ -267,12 +290,14 @@
       font-weight: bold;
       color: white;
       word-break: break-word;
+      overflow-wrap: anywhere;
+      line-height: 1.25;
     }
 
     .meta-row {
       margin-top: 16px;
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px 18px;
     }
 
@@ -281,14 +306,29 @@
       border: 1px solid #223659;
       border-radius: 12px;
       padding: 12px 14px;
+      min-width: 0;
     }
 
     .empty-note {
       color: #c7d2e6;
       font-size: 15px;
+      line-height: 1.5;
     }
 
-    @media (max-width: 1300px) {
+    @media (max-width: 1400px) {
+      .main-layout {
+        grid-template-columns: minmax(0, 1.7fr) minmax(240px, 0.9fr) minmax(260px, 1fr);
+        gap: 18px;
+      }
+
+      .viewer-panel,
+      .summary-panel,
+      .info-panel {
+        min-height: 640px;
+      }
+    }
+
+    @media (max-width: 1100px) {
       .main-layout {
         grid-template-columns: 1fr;
       }
@@ -298,12 +338,25 @@
       .info-panel {
         min-height: auto;
       }
+
+      .flip-scene {
+        min-height: 520px;
+      }
+
+      .flip-card {
+        min-height: 520px;
+      }
     }
 
-    @media (max-width: 700px) {
+    @media (max-width: 768px) {
+      body {
+        text-align: center;
+      }
+
       .main-layout {
         width: 94%;
         gap: 16px;
+        margin-bottom: 24px;
       }
 
       .viewer-panel,
@@ -313,17 +366,95 @@
         border-radius: 14px;
       }
 
+      .controls-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .control-btn {
+        width: 100%;
+        padding: 13px 14px;
+      }
+
+      .flip-scene,
+      .flip-card {
+        min-height: 430px;
+      }
+
+      .flip-face,
+      .viewer-3d-wrap,
+      #threeContainer {
+        min-height: 400px;
+      }
+
       .prop-grid,
       .meta-row {
         grid-template-columns: 1fr;
       }
 
+      .legend {
+        gap: 8px 12px;
+      }
+
+      .viewer-note {
+        font-size: 12px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        margin-top: 16px;
+        font-size: 30px;
+      }
+
+      #status {
+        font-size: 13px;
+        margin-bottom: 12px;
+      }
+
+      .main-layout {
+        width: 95%;
+        gap: 14px;
+      }
+
+      .viewer-panel,
+      .summary-panel,
+      .info-panel {
+        padding: 12px;
+      }
+
+      .panel-title {
+        font-size: 20px;
+      }
+
+      .face-title {
+        font-size: 16px;
+      }
+
       .flip-scene,
-      .flip-card,
+      .flip-card {
+        min-height: 360px;
+      }
+
       .flip-face,
       .viewer-3d-wrap,
       #threeContainer {
-        min-height: 420px;
+        min-height: 330px;
+      }
+
+      .summary-content,
+      .prop-card,
+      .meta-card {
+        padding: 12px;
+      }
+
+      .prop-value {
+        font-size: 17px;
+      }
+
+      .legend-item {
+        font-size: 12px;
       }
     }
   </style>
@@ -596,8 +727,8 @@
 
     function resizeCanvas() {
       const parentWidth = flipCard.clientWidth - 24;
-      const width = Math.max(320, Math.min(BASE_WIDTH, parentWidth));
-      const height = Math.max(420, width * (BASE_HEIGHT / BASE_WIDTH));
+      const width = Math.max(280, Math.min(BASE_WIDTH, parentWidth));
+      const height = Math.max(320, width * (BASE_HEIGHT / BASE_WIDTH));
 
       canvas.width = width;
       canvas.height = height;
@@ -612,8 +743,8 @@
       const centerX = w / 2;
       const centerY = h / 2;
 
-      const sideOffset = Math.min(350, w * 0.33);
-      const spacing = Math.min(90, h * 0.13);
+      const sideOffset = Math.min(w * 0.33, Math.max(90, w * 0.24));
+      const spacing = Math.min(h * 0.13, Math.max(42, h * 0.1));
 
       const positions = {
         "B10": { x: centerX, y: centerY },
@@ -645,7 +776,7 @@
     }
 
     function getNodeRadius() {
-      return Math.max(20, Math.min(30, canvas.width * 0.028));
+      return Math.max(14, Math.min(30, canvas.width * 0.028));
     }
 
     function getNodeColor(node) {
@@ -655,7 +786,7 @@
 
     function drawArrow(x1, y1, x2, y2) {
       const nodeRadius = getNodeRadius();
-      const headLength = Math.max(8, nodeRadius * 0.35);
+      const headLength = Math.max(6, nodeRadius * 0.35);
       const angle = Math.atan2(y2 - y1, x2 - x1);
 
       const startX = x1 + nodeRadius * Math.cos(angle);
@@ -688,9 +819,9 @@
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const nodeRadius = getNodeRadius();
-      const lineWidth = Math.max(2, canvas.width * 0.003);
-      const edgeFontSize = Math.max(10, Math.min(14, canvas.width * 0.014));
-      const nodeFontSize = Math.max(11, Math.min(17, canvas.width * 0.016));
+      const lineWidth = Math.max(1.5, canvas.width * 0.003);
+      const edgeFontSize = Math.max(8, Math.min(14, canvas.width * 0.014));
+      const nodeFontSize = Math.max(9, Math.min(17, canvas.width * 0.016));
 
       edges.forEach(edge => {
         const source = nodes.find(n => n.id === edge.source);
@@ -712,7 +843,7 @@
         ctx.fillStyle = "#a1a1aa";
         ctx.font = `${edgeFontSize}px Arial`;
         ctx.textAlign = "center";
-        ctx.fillText(edge.label || "", 0, -8);
+        ctx.fillText(edge.label || "", 0, -6);
         ctx.restore();
       });
 
@@ -722,7 +853,7 @@
         ctx.fillStyle = getNodeColor(node);
         ctx.fill();
 
-        ctx.lineWidth = Math.max(3, nodeRadius * 0.16);
+        ctx.lineWidth = Math.max(2, nodeRadius * 0.16);
         ctx.strokeStyle = selectedNodeId === node.id ? "#ffffff" : "#d9d9d9";
         ctx.stroke();
 
@@ -730,7 +861,7 @@
         ctx.font = `bold ${nodeFontSize}px Arial`;
         ctx.textAlign = "left";
         ctx.textBaseline = "middle";
-        ctx.fillText(node.label || node.id, node.x + nodeRadius + 8, node.y);
+        ctx.fillText(node.label || node.id, node.x + nodeRadius + 6, node.y);
       });
     }
 
@@ -738,8 +869,8 @@
       scene = new THREE.Scene();
       scene.background = new THREE.Color("#0b1428");
 
-      const width = threeContainer.clientWidth || 800;
-      const height = threeContainer.clientHeight || 520;
+      const width = Math.max(280, threeContainer.clientWidth || 800);
+      const height = Math.max(330, threeContainer.clientHeight || 520);
 
       camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
       camera.position.copy(defaultCameraPosition);
@@ -914,8 +1045,8 @@
 
     function resizeThree() {
       if (!renderer || !camera) return;
-      const width = threeContainer.clientWidth || 800;
-      const height = threeContainer.clientHeight || 520;
+      const width = Math.max(280, threeContainer.clientWidth || 800);
+      const height = Math.max(330, threeContainer.clientHeight || 520);
       renderer.setSize(width, height);
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
@@ -993,7 +1124,7 @@
       isShowing3D = !isShowing3D;
       flipCard.classList.toggle("is-flipped", isShowing3D);
       flipViewBtn.textContent = isShowing3D ? "Back to 2D View" : "Switch to 3D View";
-    
+
       if (isShowing3D) {
         infoPanel.style.display = "none";
         summaryPanel.style.display = "block";
@@ -1001,23 +1132,23 @@
         infoPanel.style.display = "block";
         summaryPanel.style.display = "none";
       }
-    
+
       setTimeout(() => {
         resizeCanvas();
         drawGraph();
         resizeThree();
       }, 420);
     });
-    
+
     resetViewBtn.addEventListener("click", resetView);
-    
+
     toggleColorBtn.addEventListener("click", () => {
       enableLiveColors = !enableLiveColors;
       toggleColorBtn.textContent = `Live Room Colors: ${enableLiveColors ? "On" : "Off"}`;
       toggleColorBtn.classList.toggle("active", enableLiveColors);
       applyRoomColors();
     });
-    
+
     let resizeTimeout;
     window.addEventListener("resize", () => {
       clearTimeout(resizeTimeout);
@@ -1030,10 +1161,10 @@
         resizeThree();
       }, 150);
     });
-    
+
     infoPanel.style.display = "block";
     summaryPanel.style.display = "none";
-    
+
     initThree();
     loadTwinData();
     setInterval(loadTwinData, 5000);
