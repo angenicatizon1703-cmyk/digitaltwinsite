@@ -184,20 +184,17 @@
     .viewer-summary-overlay {
       position: absolute;
       top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    
+      right: 24px;
+      left: auto;
+      transform: translateY(-50%);
       width: 300px;
-    
       background: rgba(13, 23, 48, 0.92);
       border: 1px solid #2a3f69;
       border-radius: 14px;
       padding: 14px 16px;
-    
       text-align: left;
       color: #dfe8f8;
       line-height: 1.5;
-    
       backdrop-filter: blur(6px);
       box-shadow: 0 8px 20px rgba(0,0,0,0.28);
       z-index: 5;
@@ -348,9 +345,11 @@
       }
 
       .viewer-summary-overlay {
-        left: 10px;
-        right: 10px;
+        top: auto;
         bottom: 10px;
+        right: 10px;
+        left: 10px;
+        transform: none;
         width: auto;
         padding: 12px 14px;
       }
@@ -400,10 +399,6 @@
         <div class="legend-item"><span class="legend-dot" style="background:#35c9dc;"></span>Good</div>
         <div class="legend-item"><span class="legend-dot" style="background:#f2c94c;"></span>Moderate</div>
         <div class="legend-item"><span class="legend-dot" style="background:#eb5757;"></span>High</div>
-      </div>
-
-      <div class="selected-status" id="selectedStatus">
-        Select a room in 2D or 3D to show its sensor summary.
       </div>
 
       <div class="viewer-note">
@@ -459,7 +454,6 @@
     const statusText = document.getElementById("status");
     const infoTitle = document.getElementById("infoTitle");
     const infoContent = document.getElementById("infoContent");
-    const selectedStatus = document.getElementById("selectedStatus");
     const infoPanel = document.getElementById("infoPanel");
     const viewerSummaryContent = document.getElementById("viewerSummaryContent");
 
@@ -545,7 +539,6 @@
 
     function showSelectedStatus(node) {
       if (!node || !node.telemetry) {
-        selectedStatus.innerHTML = `No room data available.`;
         viewerSummaryContent.innerHTML = `No room data available.`;
         return;
       }
@@ -561,7 +554,6 @@
         PM2.5: <strong>${safeValue(t.pm25)}</strong>
       `;
 
-      selectedStatus.innerHTML = summaryHtml;
       viewerSummaryContent.innerHTML = summaryHtml;
     }
 
@@ -570,7 +562,6 @@
       infoContent.innerHTML = `
         <div class="empty-note">Click a room in the 2D graph or 3D model to view its telemetry.</div>
       `;
-      selectedStatus.innerHTML = `Select a room in 2D or 3D to show its sensor summary.`;
       viewerSummaryContent.innerHTML = `Select a room in 2D or 3D to view its summary.`;
     }
 
@@ -751,11 +742,11 @@
 
       nodes.forEach(node => {
         ctx.beginPath();
-        ctx.arc(node.x, node.y, nodeRadius, 0, Math.PI * 2);
+        ctx.arc(node.x, node.y, getNodeRadius(), 0, Math.PI * 2);
         ctx.fillStyle = getNodeColor(node);
         ctx.fill();
 
-        ctx.lineWidth = Math.max(3, nodeRadius * 0.16);
+        ctx.lineWidth = Math.max(3, getNodeRadius() * 0.16);
         ctx.strokeStyle = selectedNodeId === node.id ? "#ffffff" : "#d9d9d9";
         ctx.stroke();
 
@@ -763,7 +754,7 @@
         ctx.font = `bold ${nodeFontSize}px Arial`;
         ctx.textAlign = "left";
         ctx.textBaseline = "middle";
-        ctx.fillText(node.label || node.id, node.x + nodeRadius + 8, node.y);
+        ctx.fillText(node.label || node.id, node.x + getNodeRadius() + 8, node.y);
       });
     }
 
@@ -1026,13 +1017,11 @@
       isShowing3D = !isShowing3D;
       flipCard.classList.toggle("is-flipped", isShowing3D);
       flipViewBtn.textContent = isShowing3D ? "Back to 2D View" : "Switch to 3D View";
-    
+
       if (isShowing3D) {
         infoPanel.style.display = "none";
-        selectedStatus.style.display = "block";
       } else {
         infoPanel.style.display = "block";
-        selectedStatus.style.display = "none";
       }
 
       setTimeout(() => {
@@ -1065,7 +1054,6 @@
     });
 
     infoPanel.style.display = "block";
-    selectedStatus.style.display = "block";
 
     initThree();
     loadTwinData();
