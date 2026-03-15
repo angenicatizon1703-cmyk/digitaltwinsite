@@ -467,12 +467,6 @@
     <div class="viewer-panel">
       <div class="panel-title">Digital Twin Viewer</div>
 
-      <div class="controls-row">
-        <button id="flipViewBtn" class="control-btn">Switch to 3D View</button>
-        <button id="resetViewBtn" class="control-btn">Reset 3D View</button>
-        <button id="toggleColorBtn" class="control-btn">Live Room Colors: Off</button>
-      </div>
-
       <div class="flip-scene">
         <div id="flipCard" class="flip-card">
           <div class="flip-face front">
@@ -496,7 +490,11 @@
         <div class="legend-item"><span class="legend-dot" style="background:#f2c94c;"></span>Moderate</div>
         <div class="legend-item"><span class="legend-dot" style="background:#eb5757;"></span>High</div>
       </div>
-
+      <div class="controls-row">
+        <button id="flipViewBtn" class="control-btn">Switch to 3D View</button>
+        <button id="resetViewBtn" class="control-btn">Reset 3D View</button>
+        <button id="toggleColorBtn" class="control-btn">Live Room Colors: Off</button>
+      </div>
       <div class="viewer-note">
         The card starts with the 2D graph. Press <strong>Switch to 3D View</strong> to flip the panel.
       </div>
@@ -1129,10 +1127,12 @@
         infoPanel.style.display = "none";
         summaryPanel.style.display = "block";
         resetViewBtn.style.display = "block";
+        toggleColorBtn.style.display = "block";
       } else {
         infoPanel.style.display = "block";
         summaryPanel.style.display = "none";
         resetViewBtn.style.display = "none";
+        toggleColorBtn.style.display = "none";
       }
 
       setTimeout(() => {
