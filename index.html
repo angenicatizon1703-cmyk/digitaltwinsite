@@ -993,31 +993,31 @@
       isShowing3D = !isShowing3D;
       flipCard.classList.toggle("is-flipped", isShowing3D);
       flipViewBtn.textContent = isShowing3D ? "Back to 2D View" : "Switch to 3D View";
-
+    
       if (isShowing3D) {
         infoPanel.style.display = "none";
         summaryPanel.style.display = "block";
       } else {
         infoPanel.style.display = "block";
-        summaryPanel.style.display = "block";
+        summaryPanel.style.display = "none";
       }
-
+    
       setTimeout(() => {
         resizeCanvas();
         drawGraph();
         resizeThree();
       }, 420);
     });
-
+    
     resetViewBtn.addEventListener("click", resetView);
-
+    
     toggleColorBtn.addEventListener("click", () => {
       enableLiveColors = !enableLiveColors;
       toggleColorBtn.textContent = `Live Room Colors: ${enableLiveColors ? "On" : "Off"}`;
       toggleColorBtn.classList.toggle("active", enableLiveColors);
       applyRoomColors();
     });
-
+    
     let resizeTimeout;
     window.addEventListener("resize", () => {
       clearTimeout(resizeTimeout);
@@ -1030,10 +1030,10 @@
         resizeThree();
       }, 150);
     });
-
+    
     infoPanel.style.display = "block";
-    summaryPanel.style.display = "block";
-
+    summaryPanel.style.display = "none";
+    
     initThree();
     loadTwinData();
     setInterval(loadTwinData, 5000);
