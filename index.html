@@ -39,13 +39,17 @@
     }
 
     .main-layout {
-      width: min(96%, 1800px);
+      width: min(96%, 1600px);
       margin: 0 auto 40px;
       display: grid;
-      grid-template-columns: minmax(0, 2fr) minmax(260px, 0.85fr) minmax(280px, 1fr);
+      grid-template-columns: minmax(0, 2fr) minmax(280px, 0.9fr);
       gap: 24px;
       align-items: start;
       justify-content: center;
+    }
+    
+    .main-layout.show-info {
+      grid-template-columns: minmax(0, 2fr) minmax(260px, 0.85fr) minmax(280px, 1fr);
     }
 
     .viewer-panel,
@@ -463,7 +467,7 @@
   <h1>2D / 3D Digital Twin</h1>
   <div id="status">Loading twin data...</div>
 
-  <div class="main-layout">
+  <div class="main-layout" id="mainLayout">
     <div class="viewer-panel">
       <div class="panel-title">Digital Twin Viewer</div>
 
@@ -562,6 +566,8 @@
     const infoPanel = document.getElementById("infoPanel");
     const summaryPanel = document.getElementById("summaryPanel");
     const viewerSummaryContent = document.getElementById("viewerSummaryContent");
+    const mainLayout = document.getElementById("mainLayout");
+
 
     const flipCard = document.getElementById("flipCard");
     const flipViewBtn = document.getElementById("flipViewBtn");
@@ -1129,11 +1135,13 @@
         summaryPanel.style.display = "block";
         resetViewBtn.style.display = "block";
         toggleColorBtn.style.display = "block";
+        mainLayout.classList.remove("show-info");
       } else {
         infoPanel.style.display = "block";
         summaryPanel.style.display = "none";
         resetViewBtn.style.display = "none";
         toggleColorBtn.style.display = "none";
+        mainLayout.classList.add("show-info");
       }
 
       setTimeout(() => {
