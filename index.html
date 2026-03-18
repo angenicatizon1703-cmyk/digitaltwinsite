@@ -261,17 +261,6 @@
       font-size: 15px;
     }
 
-    .selected-status {
-      margin-top: 14px;
-      padding: 14px;
-      border-radius: 12px;
-      background: #0d1730;
-      border: 1px solid #2a3f69;
-      text-align: left;
-      color: #dfe8f8;
-      line-height: 1.5;
-      min-height: 78px;
-    }
 
     @media (max-width: 1100px) {
       .main-layout {
@@ -317,13 +306,6 @@
   <div class="main-layout">
     <div class="viewer-panel">
       <div class="panel-title">Digital Twin Viewer</div>
-
-      <div class="controls-row">
-        <button id="flipViewBtn" class="control-btn">Switch to 3D View</button>
-        <button id="resetViewBtn" class="control-btn">Reset 3D View</button>
-        <button id="toggleColorBtn" class="control-btn">Live Room Colors: Off</button>
-      </div>
-
       <div class="flip-scene">
         <div id="flipCard" class="flip-card">
           <div class="flip-face front">
@@ -344,11 +326,14 @@
         <div class="legend-item"><span class="legend-dot" style="background:#35c9dc;"></span>Good</div>
         <div class="legend-item"><span class="legend-dot" style="background:#f2c94c;"></span>Moderate</div>
         <div class="legend-item"><span class="legend-dot" style="background:#eb5757;"></span>High</div>
+      </div> <br></br>
+      <div class="controls-row">
+        <button id="flipViewBtn" class="control-btn">Switch to 3D View</button>
+        <button id="resetViewBtn" class="control-btn">Reset 3D View</button>
+        <button id="toggleColorBtn" class="control-btn">Live Room Colors: Off</button>
       </div>
 
-      <div class="selected-status" id="selectedStatus">
-        Select a room in 2D or 3D to show its sensor summary.
-      </div>
+
 
       <div class="viewer-note">
         The card starts with the 2D graph. Press <strong>Switch to 3D View</strong> to flip the panel.
