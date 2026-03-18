@@ -985,7 +985,10 @@
         resizeThree();
       }, 150);
     });
-
+    
+    resetViewBtn.style.display = "none";
+    toggleColorBtn.style.display = "none";
+    
     initThree();
     loadTwinData();
     setInterval(loadTwinData, 5000);
