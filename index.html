@@ -2111,8 +2111,18 @@
       flipCard.classList.toggle("is-flipped", isShowing3D);
       flipViewBtn.textContent = isShowing3D ? "Back to 2D View" : "Switch to 3D View";
 
-      resetViewBtn.style.display = isShowing3D ? "block" : "none";
-      toggleColorBtn.style.display = isShowing3D ? "block" : "none";
+      if (isShowing3D) {
+        infoPanel.style.display = "none";
+        summaryPanel.style.display = "block";
+        resetViewBtn.style.display = "block";
+        toggleColorBtn.style.display = "block";
+       
+      } else {
+        infoPanel.style.display = "none";
+        summaryPanel.style.display = "block";
+        resetViewBtn.style.display = "none";
+        toggleColorBtn.style.display = "none";
+      }
 
       setTimeout(() => {
         resizeCanvas();
