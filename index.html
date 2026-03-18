@@ -261,6 +261,15 @@
       font-size: 15px;
     }
 
+    .selected-status-box {
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 12px;
+      background: #0b1428;
+      border: 1px solid #223659;
+      color: #dbe7ff;
+      line-height: 1.6;
+    }
 
     @media (max-width: 1100px) {
       .main-layout {
@@ -326,14 +335,13 @@
         <div class="legend-item"><span class="legend-dot" style="background:#35c9dc;"></span>Good</div>
         <div class="legend-item"><span class="legend-dot" style="background:#f2c94c;"></span>Moderate</div>
         <div class="legend-item"><span class="legend-dot" style="background:#eb5757;"></span>High</div>
-      </div> <br></br>
+      </div>
+      <br>
       <div class="controls-row">
         <button id="flipViewBtn" class="control-btn">Switch to 3D View</button>
         <button id="resetViewBtn" class="control-btn">Reset 3D View</button>
         <button id="toggleColorBtn" class="control-btn">Live Room Colors: Off</button>
       </div>
-
-
 
       <div class="viewer-note">
         The card starts with the 2D graph. Press <strong>Switch to 3D View</strong> to flip the panel.
@@ -471,6 +479,8 @@
     }
 
     function showSelectedStatus(node) {
+      if (!selectedStatus) return;
+
       if (!node || !node.telemetry) {
         selectedStatus.innerHTML = `No room data available.`;
         return;
@@ -492,7 +502,9 @@
       infoContent.innerHTML = `
         <div class="empty-note">Click a room in the 2D graph or 3D model to view its telemetry.</div>
       `;
-      selectedStatus.innerHTML = `Select a room in 2D or 3D to show its sensor summary.`;
+      if (selectedStatus) {
+        selectedStatus.innerHTML = `Select a room in 2D or 3D to show its sensor summary.`;
+      }
     }
 
     function showNodeInfo(node) {
@@ -546,6 +558,43 @@
 
       selectedMesh = roomMesh || null;
       applyRoomColors();
+    }
+
+    function flipTo3DView() {
+      if (!isShowing3D) {
+        isShowing3D = true;
+        flipCard.classList.add("is-flipped");
+        flipViewBtn.textContent = "Back to 2D View";
+        resetViewBtn.style.display = "block";
+        toggleColorBtn.style.display = "block";
+
+        setTimeout(() => {
+          resizeThree();
+          resizeCanvas();
+          drawGraph();
+        }, 420);
+      }
+    }
+
+    function selectNodeFrom2D(node, autoFlipTo3D = true) {
+      if (!node || node.id === "B10") return;
+
+      showNodeInfo(node);
+
+      const mesh = Object.values(roomMeshes).find(
+        roomMesh => roomMesh.userData.nodeId === node.id
+      );
+
+      if (mesh) {
+        if (autoFlipTo3D) {
+          flipTo3DView();
+          setTimeout(() => {
+            selectRoom(mesh);
+          }, 450);
+        } else {
+          selectRoom(mesh);
+        }
+      }
     }
 
     function resizeCanvas() {
@@ -889,7 +938,7 @@
       });
 
       if (clicked && clicked.id !== "B10") {
-        showNodeInfo(clicked);
+        selectNodeFrom2D(clicked, true);
       }
     });
 
@@ -951,12 +1000,11 @@
       if (isShowing3D) {
         resetViewBtn.style.display = "block";
         toggleColorBtn.style.display = "block";
-       
       } else {
         resetViewBtn.style.display = "none";
         toggleColorBtn.style.display = "none";
-        
       }
+
       setTimeout(() => {
         resizeCanvas();
         drawGraph();
@@ -985,10 +1033,10 @@
         resizeThree();
       }, 150);
     });
-    
+
     resetViewBtn.style.display = "none";
     toggleColorBtn.style.display = "none";
-    
+
     initThree();
     loadTwinData();
     setInterval(loadTwinData, 5000);
