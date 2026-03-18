@@ -42,18 +42,13 @@
       width: min(96%, 1600px);
       margin: 0 auto 40px;
       display: grid;
-      grid-template-columns: minmax(0, 2fr) minmax(280px, 0.9fr);
+      grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
       gap: 24px;
       align-items: start;
       justify-content: center;
     }
-    
-    .main-layout.show-info {
-      grid-template-columns: minmax(0, 2fr) minmax(260px, 0.85fr) minmax(280px, 1fr);
-    }
 
     .viewer-panel,
-    .summary-panel,
     .info-panel {
       background: #101a2f;
       border-radius: 16px;
@@ -201,6 +196,7 @@
       width: 100%;
       height: 100%;
     }
+
     .legend {
       display: flex;
       flex-wrap: wrap;
@@ -301,12 +297,11 @@
 
     @media (max-width: 1400px) {
       .main-layout {
-        grid-template-columns: minmax(0, 1.7fr) minmax(240px, 0.9fr) minmax(260px, 1fr);
+        grid-template-columns: minmax(0, 1.7fr) minmax(260px, 1fr);
         gap: 18px;
       }
 
       .viewer-panel,
-      .summary-panel,
       .info-panel {
         min-height: 640px;
       }
@@ -318,7 +313,6 @@
       }
 
       .viewer-panel,
-      .summary-panel,
       .info-panel {
         min-height: auto;
       }
@@ -344,7 +338,6 @@
       }
 
       .viewer-panel,
-      .summary-panel,
       .info-panel {
         padding: 14px;
         border-radius: 14px;
@@ -403,7 +396,6 @@
       }
 
       .viewer-panel,
-      .summary-panel,
       .info-panel {
         padding: 12px;
       }
@@ -427,7 +419,6 @@
         min-height: 330px;
       }
 
-      .summary-content,
       .prop-card,
       .meta-card {
         padding: 12px;
@@ -474,17 +465,15 @@
         <div class="legend-item"><span class="legend-dot" style="background:#f2c94c;"></span>Moderate</div>
         <div class="legend-item"><span class="legend-dot" style="background:#eb5757;"></span>High</div>
       </div>
-      <br></br>
+      <br>
       <div class="controls-row">
         <button id="flipViewBtn" class="control-btn">Switch to 3D View</button>
         <button id="resetViewBtn" class="control-btn">Reset 3D View</button>
         <button id="toggleColorBtn" class="control-btn">Live Room Colors: Off</button>
       </div>
       <div class="viewer-note">
-        The card starts with the 2D graph. Press <strong>Switch to 3D View</strong> to flip the panel.
+        Users can switch between <strong>2D</strong> and <strong>3D</strong> views depending on screen size and preference. Room telemetry stays visible in the same information panel for both views.
       </div>
-    </div>
-
     </div>
 
     <div class="info-panel" id="infoPanel">
@@ -536,10 +525,6 @@
     const infoTitle = document.getElementById("infoTitle");
     const infoContent = document.getElementById("infoContent");
     const infoPanel = document.getElementById("infoPanel");
-    const summaryPanel = document.getElementById("summaryPanel");
-    const viewerSummaryContent = document.getElementById("viewerSummaryContent");
-    const mainLayout = document.getElementById("mainLayout");
-
 
     const flipCard = document.getElementById("flipCard");
     const flipViewBtn = document.getElementById("flipViewBtn");
@@ -605,48 +590,11 @@
       return new THREE.Color("#e8e3da");
     }
 
-    function getAqiStatusText(aqi) {
-      const num = Number(aqi);
-      if (num === 1) return "Air quality is good";
-      if (num === 2) return "Air quality is moderate";
-      if (num >= 3) return "Air quality is high";
-      return "Air quality status unavailable";
-    }
-
-    function getHumidityStatusText(hum) {
-      const num = Number(hum);
-      if (Number.isNaN(num)) return "Humidity unavailable";
-      if (num < 30) return "Humidity is low";
-      if (num <= 60) return "Humidity is acceptable";
-      return "Humidity is not good";
-    }
-
-    function showSelectedStatus(node) {
-      if (!node || !node.telemetry) {
-        viewerSummaryContent.innerHTML = `No room data available.`;
-        return;
-      }
-
-      const t = node.telemetry;
-
-      const summaryHtml = `
-        <strong>${safeValue(t.room_no || node.label || node.id)}</strong><br>
-        ${getAqiStatusText(t.aqi)}: <strong>${safeValue(t.aqi)}</strong><br>
-        ${getHumidityStatusText(t.hum)}: <strong>${safeValue(t.hum)}</strong><br>
-        Temperature: <strong>${safeValue(t.temp)}°C</strong><br>
-        eCO2: <strong>${safeValue(t.eco2)}</strong><br>
-        PM2.5: <strong>${safeValue(t.pm25)}</strong>
-      `;
-
-      viewerSummaryContent.innerHTML = summaryHtml;
-    }
-
     function clearRoomInfo() {
       infoTitle.textContent = "Select a room";
       infoContent.innerHTML = `
         <div class="empty-note">Click a room in the 2D graph or 3D model to view its telemetry.</div>
       `;
-      viewerSummaryContent.innerHTML = `Select a room in 2D or 3D to view its summary.`;
     }
 
     function showNodeInfo(node) {
@@ -691,7 +639,6 @@
         `;
       }
 
-      showSelectedStatus(node);
       drawGraph();
 
       const roomMesh = Object.values(roomMeshes).find(
@@ -1102,17 +1049,8 @@
       flipCard.classList.toggle("is-flipped", isShowing3D);
       flipViewBtn.textContent = isShowing3D ? "Back to 2D View" : "Switch to 3D View";
 
-      if (isShowing3D) {
-        infoPanel.style.display = "none";
-        resetViewBtn.style.display = "block";
-        toggleColorBtn.style.display = "block";
-       
-      } else {
-        infoPanel.style.display = "none";
-        resetViewBtn.style.display = "none";
-        toggleColorBtn.style.display = "none";
-        
-      }
+      resetViewBtn.style.display = isShowing3D ? "block" : "none";
+      toggleColorBtn.style.display = isShowing3D ? "block" : "none";
 
       setTimeout(() => {
         resizeCanvas();
@@ -1143,7 +1081,6 @@
       }, 150);
     });
 
-    infoPanel.style.display = "block";
     resetViewBtn.style.display = "none";
     toggleColorBtn.style.display = "none";
 
