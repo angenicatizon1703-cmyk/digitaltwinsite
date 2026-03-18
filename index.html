@@ -948,6 +948,15 @@
       flipCard.classList.toggle("is-flipped", isShowing3D);
       flipViewBtn.textContent = isShowing3D ? "Back to 2D View" : "Switch to 3D View";
 
+      if (isShowing3D) {
+        resetViewBtn.style.display = "block";
+        toggleColorBtn.style.display = "block";
+       
+      } else {
+        resetViewBtn.style.display = "none";
+        toggleColorBtn.style.display = "none";
+        
+      }
       setTimeout(() => {
         resizeCanvas();
         drawGraph();
