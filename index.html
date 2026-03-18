@@ -201,26 +201,6 @@
       width: 100%;
       height: 100%;
     }
-
-    .viewer-summary-title {
-      font-size: 14px;
-      font-weight: bold;
-      color: #9bb0d3;
-      margin-bottom: 8px;
-    }
-
-    .summary-content {
-      background: #0d1730;
-      border: 1px solid #2a3f69;
-      border-radius: 12px;
-      padding: 14px 16px;
-      text-align: left;
-      color: #dfe8f8;
-      line-height: 1.6;
-      min-height: 160px;
-      word-break: break-word;
-    }
-
     .legend {
       display: flex;
       flex-wrap: wrap;
@@ -505,14 +485,6 @@
       </div>
     </div>
 
-    <div class="summary-panel" id="summaryPanel">
-      <div class="panel-title">3D Room Summary</div>
-      <div class="summary-content">
-        <div class="viewer-summary-title">Room Summary</div>
-        <div id="viewerSummaryContent">
-          Select a room in 2D or 3D to view its summary.
-        </div>
-      </div>
     </div>
 
     <div class="info-panel" id="infoPanel">
@@ -1132,13 +1104,11 @@
 
       if (isShowing3D) {
         infoPanel.style.display = "none";
-        summaryPanel.style.display = "block";
         resetViewBtn.style.display = "block";
         toggleColorBtn.style.display = "block";
        
       } else {
-        infoPanel.style.display = "block";
-        summaryPanel.style.display = "none";
+        infoPanel.style.display = "none";
         resetViewBtn.style.display = "none";
         toggleColorBtn.style.display = "none";
         
@@ -1174,7 +1144,6 @@
     });
 
     infoPanel.style.display = "block";
-    summaryPanel.style.display = "none";
     resetViewBtn.style.display = "none";
     toggleColorBtn.style.display = "none";
 
